@@ -1,0 +1,1596 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Lesson 1 of Coding agents for computational biology: how LLMs work and how to talk to one through an API.">
+<meta name="theme-color" content="#0a0c11">
+<style>[hidden]{display:none!important} body{margin:0} img{max-width:100%}</style>
+<title>Lesson 1 · How LLMs Work</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Palette: fluorescence microscopy. A dark field like an unlit slide; DAPI blue carries structure,
+   GFP green labels sections, mCherry pink marks what the model generates. One deliberate dark theme. */
+:root{
+  color-scheme:dark;
+  --bg:#0a0c11; --surface:#11141b; --sunk:#181c26; --ink:#e9ecf3; --muted:#8e97ab; --line:#242a38;
+  --acc:#8b9bff; --on-acc:#0a0c11; --acc-soft:rgba(139,155,255,.15);
+  --pop:#ff6f91; --pop-soft:rgba(255,111,145,.15);
+  --gfp:#4fe0a5; --gfp-soft:rgba(79,224,165,.12);
+  --t1:#262b63; --t2:#4d2036; --t3:#183f34; --t4:#4b3a19; --t5:#17314c; --t6:#372752;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181;
+  --cold:#3987e5; --warm:#a87ad0; --hot:#ef6b6b;
+  --display:"Bricolage Grotesque","Helvetica Neue",Arial,sans-serif;
+  --body:"Instrument Sans","Helvetica Neue",Arial,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:18px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1040px;margin:0 auto;padding-inline:20px}
+.prose{max-width:68ch;display:flex;flex-direction:column;gap:14px}
+h1,h2,h3,h4{font-family:var(--display);line-height:1.12;text-wrap:balance;margin:0}
+h1{font-size:clamp(2.1rem,5.4vw,3.5rem);font-weight:800;letter-spacing:-.025em}
+h2{font-size:clamp(1.6rem,3.4vw,2.25rem);font-weight:700;letter-spacing:-.015em}
+h3{font-size:1.2rem;font-weight:700;margin-top:18px}
+p{margin:0}
+a{color:var(--acc)}
+:not(pre)>code{font-family:var(--mono);font-size:.84em;background:var(--sunk);padding:.08em .35em;border-radius:5px}
+:focus-visible{outline:2px solid var(--pop);outline-offset:2px}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--pop)}
+.muted{color:var(--muted)}
+.note{font-size:.93rem;color:var(--muted)}
+.lede{font-size:1.15rem}
+
+/* schedule bar */
+.sched{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);border-bottom:1px solid var(--line)}
+.sched .wrap{display:flex;align-items:center;gap:14px;padding-block:8px}
+.sched-title{font-family:var(--display);font-weight:700;font-size:14px;white-space:nowrap}
+.sched-bar{flex:1;display:flex;gap:2px;min-width:0}
+.sched-bar a{flex:var(--n) 1 0;min-width:0;text-decoration:none;color:var(--muted);background:var(--sunk);padding:4px 6px;border-radius:4px;font-family:var(--mono);font-size:11px;line-height:1.3;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;transition:background .25s,color .25s}
+.sched-bar a .lbl{display:block;font-weight:600}
+.sched-bar a.on{background:var(--acc);color:var(--on-acc)}
+@media (max-width:720px){.sched-title{display:none}.sched-bar a .lbl{display:none}.sched-bar a{text-align:center;padding:6px 2px}}
+
+/* sections */
+.hero{padding-block:44px 52px}
+.hero-meta{display:flex;flex-wrap:wrap;gap:8px 22px;font-family:var(--mono);font-size:13px;color:var(--muted);margin-top:18px}
+.hero-meta b{color:var(--ink);font-weight:600}
+section.part{padding-block:60px;border-top:1px solid var(--line);scroll-margin-top:60px}
+.part-head{display:flex;flex-direction:column;gap:10px;margin-bottom:20px}
+.demo{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:clamp(14px,2.4vw,24px);margin-block:22px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.demo-cap{font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{font:600 15px/1 var(--display);padding:10px 16px;border-radius:999px;border:1.5px solid var(--acc);background:var(--acc);color:var(--on-acc);cursor:pointer}
+.btn.ghost{background:transparent;color:var(--acc)}
+.btn:hover{filter:brightness(1.07)}
+.chipbtn{font:500 13px/1.2 var(--mono);padding:6px 11px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.chipbtn[aria-pressed="true"]{border-color:var(--acc);background:var(--acc-soft)}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+@media (max-width:720px){.two{grid-template-columns:minmax(0,1fr)}}
+.panel{border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px;min-width:0;background:var(--bg)}
+.panel h4{font-size:15px;font-weight:700}
+.mono-box{font-family:var(--mono);font-size:13.5px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px;margin:0}
+.mono-box .gen{color:var(--pop)}
+
+/* hero generator */
+.gen-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:28px;align-items:start}
+@media (max-width:820px){.gen-grid{grid-template-columns:minmax(0,1fr)}}
+.gen-text{font-size:clamp(1.3rem,2.7vw,1.75rem);line-height:1.5;min-height:4.5em}
+.gen-text .g{color:var(--pop);background:var(--pop-soft);border-radius:5px;padding:0 .08em;display:inline-block;white-space:pre;animation:pop .45s ease-out}
+@keyframes pop{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.caret{display:inline-block;width:3px;height:1.05em;background:var(--pop);vertical-align:-.15em;margin-left:3px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.cands{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:5px}
+.cand,.trow{display:grid;grid-template-columns:7.2em minmax(0,1fr) 3.6em;gap:10px;align-items:center;font-family:var(--mono);font-size:14px;padding:4px 6px;border-radius:8px;transition:background .3s}
+.ctok{white-space:pre;overflow:hidden;text-overflow:ellipsis}
+.bar{height:12px;background:var(--sunk);border-radius:6px;overflow:hidden}
+.fill{display:block;height:100%;width:0;background:var(--acc);border-radius:6px;transition:width .6s cubic-bezier(.2,.8,.2,1)}
+.pct{text-align:right;font-variant-numeric:tabular-nums;color:var(--muted)}
+.cand.picked{background:var(--pop-soft)}
+.cand.picked .fill{background:var(--pop)}
+.cand.picked .ctok{color:var(--pop);font-weight:600}
+
+/* stages */
+.stages{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media (max-width:760px){.stages{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.stage{border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:6px;min-width:0;background:var(--bg);transition:border-color .3s,box-shadow .3s,transform .3s}
+.stage h4{font-size:14px;font-weight:700}
+.stage .num{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.stage .viz{font-family:var(--mono);font-size:12.5px;line-height:1.5;overflow-wrap:anywhere}
+.stage .viz .k{color:var(--pop);font-weight:600}
+.stage.on{border-color:var(--acc);box-shadow:0 0 0 3px var(--acc-soft);transform:translateY(-2px)}
+.emb{display:grid;grid-template-columns:repeat(12,1fr);gap:2px}
+.emb i{display:block;height:9px;border-radius:2px;background:var(--acc)}
+.loopnote{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:13px;color:var(--muted)}
+.loopnote svg{flex:none}
+
+/* temperature */
+.trow{grid-template-columns:6.4em 3em minmax(0,1fr) 3.6em 2.4em}
+.trow .lg{font-variant-numeric:tabular-nums;color:var(--muted);text-align:right}
+.trow .cnt{font-variant-numeric:tabular-nums;color:var(--pop);font-weight:600;text-align:right}
+.trow.flash{animation:flash .5s ease-out}
+@keyframes flash{from{background:var(--pop-soft)}to{background:transparent}}
+.thead{font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.slider{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.slider input{flex:1;min-width:180px;accent-color:var(--acc)}
+.slider output{font:700 1.4rem/1 var(--display);font-variant-numeric:tabular-nums;min-width:3.2em}
+/* formula */
+.mathfig{margin:24px 0 0;max-width:68ch;display:flex;flex-direction:column;gap:18px}
+.math-block{font-size:1.3rem;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 18px;overflow-x:auto;color:var(--ink);text-align:center}
+.math-block mjx-container[display="true"]{margin:.4em 0!important}
+mjx-container{color:inherit}
+.symbols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 24px;margin:0;font-size:16px}
+@media (max-width:560px){.symbols{grid-template-columns:minmax(0,1fr)}}
+.symbols div{display:grid;grid-template-columns:2.6em minmax(0,1fr);gap:8px;align-items:baseline}
+.symbols dt{font-weight:600}
+.symbols dd{margin:0;color:var(--muted)}
+/* physics demo */
+.phys-top{display:flex;gap:22px;align-items:center}
+.thermo{display:flex;flex-direction:column;align-items:center;flex:none}
+.thermo-tube{position:relative;z-index:1;width:16px;height:96px;border:2px solid var(--ink);border-bottom:0;border-radius:9px 9px 0 0;overflow:hidden;background:var(--surface)}
+.thermo-fill{position:absolute;left:0;right:0;bottom:0;height:30%;background:var(--cold);transition:height .45s ease,background .45s ease}
+.thermo-bulb{width:30px;height:30px;border-radius:50%;border:2px solid var(--ink);margin-top:-5px;background:var(--cold);transition:background .45s ease}
+.phys-ctl{flex:1;min-width:0;display:flex;flex-direction:column;gap:10px}
+.phys-state{margin:0;font-size:15px}
+#physCanvas{display:block;width:100%;height:346px;border-radius:10px;background:var(--bg);border:1px solid var(--line)}
+.phases{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 22px;margin-top:22px}
+@media (max-width:720px){.phases{grid-template-columns:minmax(0,1fr)}}
+.phase{border-top:4px solid var(--line);padding-top:10px;display:flex;flex-direction:column;gap:4px;font-size:16px}
+.phase b{font-family:var(--display)}
+.phase span{color:var(--muted)}
+.phase.cold{border-top-color:var(--cold)}
+.phase.warm{border-top-color:var(--warm)}
+.phase.hot{border-top-color:var(--hot)}
+.mnemonic{margin:18px 0 0;font:700 clamp(1.15rem,2.4vw,1.4rem)/1.3 var(--display);letter-spacing:-.01em}
+
+/* softmax explorer */
+.explore{margin-block:22px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+.explore summary{cursor:pointer;list-style:none;display:flex;gap:14px;padding:16px 20px;align-items:center}
+.explore summary::-webkit-details-marker{display:none}
+.sum-icon{flex:none;width:30px;height:30px;border-radius:50%;background:var(--acc-soft);border:1.5px solid var(--acc);display:grid;place-items:center;transition:transform .25s}
+.sum-icon::after{content:"+";font:700 19px/1 var(--display);color:var(--acc)}
+.explore[open] .sum-icon{transform:rotate(45deg)}
+.sum-text{display:flex;flex-direction:column;gap:2px;min-width:0}
+.sum-title{font:700 1.15rem/1.2 var(--display)}
+.sum-sub{font-size:15px;color:var(--muted)}
+.explore-body{padding:4px clamp(14px,2.4vw,24px) 22px;display:flex;flex-direction:column;gap:20px;border-top:1px solid var(--line);padding-top:20px}
+.explore[open] .explore-body{animation:drop .35s ease-out}
+@keyframes drop{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.ex-controls{display:flex;flex-direction:column;gap:14px}
+.logit-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px 20px}
+.lg-item{display:flex;flex-direction:column;gap:4px;min-width:0}
+.lg-item label{display:flex;justify-content:space-between;gap:8px;font:13px var(--mono)}
+.lg-item label .sw{display:inline-flex;align-items:center;gap:6px;white-space:pre}
+.lg-item label output{font-variant-numeric:tabular-nums;color:var(--muted)}
+.lg-item input{width:100%}
+.sw i{width:10px;height:10px;border-radius:3px;display:inline-block;flex:none}
+.c1{--c:var(--s1)}.c2{--c:var(--s2)}.c3{--c:var(--s3)}.c4{--c:var(--s4)}.c5{--c:var(--s5)}
+.sw i,.steps .fill{background:var(--c)}
+.lg-item input{accent-color:var(--c)}
+.steps{font-size:14px;min-width:560px}
+.steps td,.steps th{padding:7px 10px}
+.steps .num{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
+.steps th.num{font-family:var(--body);text-transform:none;letter-spacing:0;font-size:14px;color:var(--ink)}
+.steps th.pcol{text-transform:none;letter-spacing:0;font-size:14px;color:var(--ink);font-family:var(--body)}
+.steps .pcol{width:36%}
+.steps .pcell{display:grid;grid-template-columns:minmax(0,1fr) 4em;gap:10px;align-items:center}
+.steps .pcell .num{text-align:right}
+.steps tfoot td{border-bottom:0;color:var(--muted);font-size:13.5px}
+.steps tfoot .pcol{text-align:right}
+.steps td:first-child{font-family:var(--mono)}
+.charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+@media (max-width:820px){.charts{grid-template-columns:minmax(0,1fr)}}
+.chart{margin:0;display:flex;flex-direction:column;gap:8px;min-width:0}
+.chart figcaption{display:flex;flex-direction:column;gap:2px;font-size:15px}
+.chart figcaption b{font-family:var(--display)}
+.chart figcaption span{color:var(--muted);font-size:14px}
+.chart-wrap{position:relative}
+.chart-wrap svg{display:block;width:100%;height:auto;touch-action:pan-y}
+#chartT{cursor:crosshair}
+.chart-wrap text{font-family:var(--mono);font-size:12.5px;fill:var(--muted);stroke:var(--surface);stroke-width:4px;stroke-linejoin:round;paint-order:stroke}
+.chart-wrap text.dl{font-size:13px;font-weight:600;fill:var(--ink)}
+.chart-wrap .grid{stroke:var(--line);stroke-width:1}
+.chart-wrap .axis{stroke:var(--muted);stroke-width:1}
+.tip{position:absolute;pointer-events:none;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:12px/1.5 var(--mono);color:var(--ink);box-shadow:0 6px 18px rgba(20,20,50,.14);white-space:nowrap;z-index:2;font-variant-numeric:tabular-nums}
+.tip b{font-weight:600}
+.tip .sw{display:flex;align-items:center;gap:6px}
+
+/* attention */
+.att-scroll{overflow-x:auto;padding-bottom:6px}
+.att-inner{position:relative;display:inline-block;padding-top:120px;min-width:100%}
+.att-svg{position:absolute;left:0;top:0;overflow:visible}
+.att-row{display:flex;gap:6px}
+.att-tok{font-family:var(--mono);font-size:14px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:6px 8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;white-space:pre}
+.att-tok small{font-size:10.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.att-tok.sel{border-color:var(--pop);background:var(--pop-soft)}
+.att-tok.future{opacity:.4}
+
+/* tokenizer */
+textarea{width:100%;min-height:92px;font-family:var(--mono);font-size:14px;line-height:1.5;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px;resize:vertical}
+.tok-out{font-family:var(--mono);font-size:14px;line-height:2.1;white-space:pre-wrap;overflow-wrap:anywhere;max-height:300px;overflow:auto;background:var(--bg);border-radius:10px;padding:10px 12px;border:1px solid var(--line)}
+.tk{border-radius:4px;padding:3px 1px;margin-right:1px;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.tk1{background:var(--t1)}.tk2{background:var(--t2)}.tk3{background:var(--t3)}.tk4{background:var(--t4)}.tk5{background:var(--t5)}.tk6{background:var(--t6)}
+.tk.nl{color:var(--muted)}
+.tok-out.ids .tk{margin-right:5px;padding-inline:4px}
+.stats{display:flex;flex-wrap:wrap;gap:12px 32px}
+.stat b{display:block;font:800 1.7rem/1.1 var(--display);font-variant-numeric:tabular-nums}
+.stat span{font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.check{display:inline-flex;gap:8px;align-items:center;font-family:var(--mono);font-size:13px;cursor:pointer}
+.check input{accent-color:var(--acc);width:16px;height:16px}
+
+/* context */
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.seg button{font:500 13px/1 var(--mono);padding:8px 12px;background:transparent;border:0;color:var(--ink);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--acc);color:var(--on-acc)}
+.ctl-label{font-family:var(--mono);font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.ctl{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.ctl input[type=range]{width:160px;accent-color:var(--acc)}
+.gauge-wrap{display:flex;flex-direction:column;gap:6px}
+.gauge{height:22px;background:var(--sunk);border-radius:6px;display:flex;overflow:hidden}
+.gauge i{display:block;height:100%;border-right:2px solid var(--surface);transition:width .4s}
+.r-system{background:var(--muted)}.r-user{background:var(--acc)}.r-assistant{background:var(--pop)}
+.gauge-lbl{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-family:var(--mono);font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.legend{display:flex;gap:14px;flex-wrap:wrap}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:10px;height:10px;border-radius:2px;display:inline-block}
+.msgs{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px}
+.msg{display:grid;grid-template-columns:6.6em minmax(0,1fr) 4.6em;gap:10px;align-items:baseline;font-size:15px;line-height:1.45;padding:8px 10px;border-radius:8px;background:var(--bg);transition:opacity .3s}
+.msg .role{font-family:var(--mono);font-size:11.5px;text-transform:uppercase;letter-spacing:.05em}
+.msg .role.user{color:var(--acc)}.msg .role.assistant{color:var(--pop)}.msg .role.system{color:var(--muted)}
+.msg .n{font-family:var(--mono);font-size:12px;text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
+.msg.dropped{opacity:.5}
+.msg.dropped .txt{text-decoration:line-through}
+.msg .tag{font-family:var(--mono);font-size:11px;color:var(--pop);margin-left:6px;text-decoration:none;display:inline-block}
+.msg.reply{background:transparent;outline:1.5px dashed var(--pop);outline-offset:-1px}
+@media (max-width:560px){.msg{grid-template-columns:minmax(0,1fr) 4.4em}.msg .role{grid-column:1/-1}}
+.reqchart{position:relative;display:flex;align-items:flex-end;gap:12px;height:150px;border-bottom:1px solid var(--line)}
+.reqchart .col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;font-family:var(--mono);font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;height:100%}
+.reqchart .b{width:100%;max-width:60px;background:var(--acc);border-radius:4px 4px 0 0;transition:height .4s}
+.reqchart .limit{position:absolute;left:0;right:0;border-top:1.5px dashed var(--pop);pointer-events:none}
+.reqchart .limit span{position:absolute;right:0;top:-18px;font-family:var(--mono);font-size:11px;color:var(--pop)}
+.reqx{display:flex;gap:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.reqx span{flex:1;text-align:center}
+.status{font-size:15px}
+
+/* thinking */
+.think-q{font-size:1.05rem}
+.marker{font-family:var(--mono);font-size:13px;padding:3px 8px;border-radius:999px;background:var(--acc-soft);color:var(--ink)}
+.marker.off{background:var(--sunk);color:var(--muted);text-decoration:line-through}
+.trace{font-style:italic;color:var(--muted);font-size:15px;line-height:1.55;min-height:1.5em}
+.answer{font-weight:600;font-size:16px;min-height:1.5em}
+.meter{font-family:var(--mono);font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.verdict{font:600 11.5px/1 var(--mono);padding:4px 8px;border-radius:999px;align-self:flex-start}
+.verdict.bad{background:var(--pop-soft);color:var(--pop)}
+.verdict.ok{background:var(--acc-soft);color:var(--acc)}
+.tlabel{font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+
+/* api wire */
+.wire{display:grid;grid-template-columns:minmax(0,1fr) minmax(70px,1.3fr) minmax(0,1fr) minmax(40px,.7fr) minmax(0,1fr);align-items:center;gap:8px}
+.node{border:1.5px solid var(--ink);border-radius:12px;padding:12px 10px;font:700 14px/1.25 var(--display);text-align:center;background:var(--surface);min-width:0}
+.node small{display:block;font:400 12px/1.3 var(--mono);color:var(--muted);margin-top:4px}
+.link{position:relative;height:2px;background:var(--line)}
+.link .lbl{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);font:11px/1.2 var(--mono);color:var(--muted);white-space:nowrap}
+.packet{position:absolute;top:-5px;left:0;width:12px;height:12px;border-radius:50%;opacity:0}
+.packet.req{background:var(--acc)}.packet.res{background:var(--pop)}
+@media (max-width:700px){
+  .wire{grid-template-columns:minmax(0,1fr)}
+  .link{height:40px;width:2px;margin-inline:auto}
+  .link .lbl{bottom:auto;top:50%;left:12px;transform:translateY(-50%)}
+  .packet{left:-5px;top:0}
+}
+
+/* code */
+.codebox{position:relative;min-width:0}
+.codebox pre{margin:0;background:var(--sunk);border:1px solid var(--line);border-radius:10px;padding:34px 16px 16px;overflow-x:auto;font:13.5px/1.6 var(--mono);color:var(--ink)}
+.codebox .fname{position:absolute;top:9px;left:16px;font:11px var(--mono);color:var(--muted)}
+.copy{position:absolute;top:6px;right:6px;font:600 12px/1 var(--display);padding:6px 10px;border-radius:6px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.c{color:var(--muted)}
+.ex{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:28px;counter-reset:ex}
+.ex>li{display:flex;flex-direction:column;gap:12px;counter-increment:ex}
+.ex>li h3{margin:0;display:flex;gap:10px;align-items:baseline}
+.ex>li h3::before{content:"Exercise " counter(ex);font:600 12px var(--mono);color:var(--pop);text-transform:uppercase;letter-spacing:.06em;white-space:nowrap}
+
+/* bridge */
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:600 12px var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+td code{font-family:var(--mono);font-size:13px}
+.tablebox{overflow-x:auto}
+.remember{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 28px;margin-top:8px}
+@media (max-width:640px){.remember{grid-template-columns:minmax(0,1fr)}}
+.remember div{border-top:2px solid var(--ink);padding-top:10px;font-size:16px}
+.remember b{font-family:var(--display)}
+footer{border-top:1px solid var(--line);padding-block:32px 48px;font-family:var(--mono);font-size:13px;color:var(--muted)}
+
+@media (prefers-reduced-motion: reduce){:root:not(.force-motion) *{animation:none!important;transition:none!important}}
+.motion-note{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;margin-top:16px;padding:12px 16px;border:1px solid var(--line);border-radius:12px;background:var(--surface);font-size:15px}
+
+/* dark identity layer */
+body{background-color:var(--bg);background-image:radial-gradient(1100px 520px at 12% -8%,rgba(139,155,255,.14),transparent 62%),radial-gradient(800px 460px at 96% -4%,rgba(79,224,165,.08),transparent 60%);background-repeat:no-repeat;font-size:17px;line-height:1.65}
+h1{font-weight:800;letter-spacing:-.035em}
+h2{letter-spacing:-.02em}
+.eyebrow{color:var(--gfp)}
+.eyebrow::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--gfp);box-shadow:0 0 10px var(--gfp);margin-right:9px;vertical-align:2px}
+.sched{background:rgba(10,12,17,.96);border-bottom-color:var(--line)}
+.sched-bar a{background:rgba(255,255,255,.04)}
+.sched-bar a.on{box-shadow:0 0 18px -4px var(--acc)}
+.demo,.explore{background:linear-gradient(180deg,rgba(255,255,255,.028),rgba(255,255,255,0) 140px),var(--surface);box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 20px 40px -24px rgba(0,0,0,.7)}
+.panel,.stage,.msg,.tok-out,textarea,.att-tok,#physCanvas{background:rgba(255,255,255,.02)}
+.stage.on{box-shadow:0 0 0 1px var(--acc)}
+.btn{transition:box-shadow .2s,filter .2s}
+.btn:hover{box-shadow:0 0 22px -4px var(--acc)}
+.btn.ghost:hover{box-shadow:0 0 18px -6px var(--acc)}
+.gen-text .g{text-shadow:0 0 18px rgba(255,111,145,.45)}
+.caret{box-shadow:0 0 10px var(--pop)}
+.cand.picked{box-shadow:inset 0 0 0 1px rgba(255,111,145,.35)}
+.math-block{background:rgba(255,255,255,.025)}
+.codebox pre{background:#0d1016}
+.tip{box-shadow:0 10px 30px rgba(0,0,0,.55)}
+.marker{background:var(--acc-soft)}
+.note{color:var(--muted)}
+.remember div{border-top-color:var(--acc)}
+.exercise-tag{color:var(--gfp)}
+.ex>li h3::before{color:var(--gfp)}
+footer{color:var(--muted)}
+</style>
+</head>
+<body>
+
+
+<nav class="sched" aria-label="Lesson schedule">
+  <div class="wrap">
+    <a class="sched-title" href="../index.html" style="color:inherit;text-decoration:none">← Course · Lesson 1</a>
+    <div class="sched-bar">
+      <a href="#hook" style="--n:10"><span class="lbl">Hook</span>0–10</a>
+      <a href="#predict" style="--n:25"><span class="lbl">Next-token prediction</span>10–35</a>
+      <a href="#tokens" style="--n:10"><span class="lbl">Tokenization</span>35–45</a>
+      <a href="#context" style="--n:10"><span class="lbl">Context</span>45–55</a>
+      <a href="#thinking" style="--n:7"><span class="lbl">Thinking</span>55–62</a>
+      <a href="#api" style="--n:23"><span class="lbl">Hands-on: the API</span>62–85</a>
+      <a href="#bridge" style="--n:5"><span class="lbl">Bridge</span>85–90</a>
+    </div>
+  </div>
+</nav>
+
+<main>
+<header class="hero">
+  <div class="wrap">
+    <div class="motion-note" id="motionNote" hidden><span>Your browser asks for reduced motion, so the animations on this page are paused.</span><button class="btn ghost" id="motionOn" type="button">Play animations</button></div>
+    <div class="prose">
+      <span class="eyebrow">Coding agents for computational biology · Lesson 1 of 5</span>
+      <h1>Every answer is built one token at a time</h1>
+      <p class="lede">A large language model does one thing: given some text, it scores every possible next piece of text and picks one. Chat, memory and "thinking" are all built on that loop. This lesson takes the loop apart, then has you call a local model from Python.</p>
+    </div>
+    <div class="hero-meta">
+      <span><b>90 min</b> · 7 blocks</span>
+      <span>Needs <b>LM Studio</b>, <b>Python 3.11+</b>, one small model</span>
+      <span>Next lesson: <b>structured outputs</b></span>
+    </div>
+
+    <div class="demo" id="gen" aria-label="Live next-token generation">
+      <div class="demo-cap">Watch a model finish the sentence</div>
+      <div class="gen-grid">
+        <div class="gen-text" aria-live="polite"><span>Cluster 4 expresses MS4A1, CD79A and CD19, so these cells are</span><span id="genOut"></span><span class="caret" aria-hidden="true"></span></div>
+        <div class="stack" style="display:flex;flex-direction:column;gap:12px;min-width:0">
+          <div class="note">Step <b id="genStep">1</b>: the 5 highest-scoring of roughly 150,000 possible next tokens. The top one is picked and appended.</div>
+          <ol class="cands" id="genCands"></ol>
+          <div class="row">
+            <button class="btn" id="genPlay" type="button" aria-pressed="true">Pause</button>
+            <button class="btn ghost" id="genNext" type="button">Next step</button>
+            <span class="note">␣ marks a leading space, which is part of the token.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section class="part" id="hook">
+  <div class="wrap">
+    <div class="part-head prose">
+      <span class="eyebrow">0–10 min · Hook</span>
+      <h2>Same question, different answers</h2>
+      <p>Give a model the top markers of a PBMC 3k cluster and ask what the cells are. Ask again with the same prompt, and the wording changes. Sometimes the answer changes too. By the end of the lesson you can explain why and control it.</p>
+    </div>
+    <div class="demo">
+      <div class="demo-cap">One prompt, sent twice</div>
+      <div class="row">
+        <span class="note">Cluster 1 top markers:</span>
+        <span class="marker">CD14</span><span class="marker">LYZ</span><span class="marker">S100A8</span><span class="marker">S100A9</span><span class="marker">FCN1</span>
+        <span class="note">"Which cell type is this?"</span>
+      </div>
+      <div class="two">
+        <div class="panel"><span class="tlabel">Run 1</span><p id="hookA">These look like classical CD14+ monocytes.</p></div>
+        <div class="panel"><span class="tlabel">Run 2</span><p id="hookB">This is a myeloid cluster. S100A8, S100A9 and LYZ point to monocytes, possibly neutrophils.</p></div>
+      </div>
+      <div class="row"><button class="btn" id="hookAsk" type="button">Ask again</button><span class="note">Example answers of the kind a small local model gives at temperature 0.8.</span></div>
+    </div>
+    <div class="prose"><p class="note">Is the model broken, or does it work this way on purpose? The temperature section below explains what is going on.</p></div>
+  </div>
+</section>
+
+<section class="part" id="predict">
+  <div class="wrap">
+    <div class="part-head prose">
+      <span class="eyebrow">10–35 min · Next-token prediction</span>
+      <h2>One job: predict the next token</h2>
+      <p>A neural network reads the text so far as a list of numbers and outputs a score for every token in its vocabulary. The scores become probabilities, one token is chosen, and it is appended to the input. Then the whole network runs again for the next token.</p>
+      <p>Training sets the network's billions of weights so that, across trillions of tokens of text, the true next token gets a high probability. Nothing else is learned directly. Grammar, facts and marker genes all emerge because they help predict text.</p>
+    </div>
+
+    <div class="demo">
+      <div class="demo-cap">One pass through the model</div>
+      <ol class="stages" id="stages">
+        <li class="stage"><span class="num">1</span><h4>Text</h4><div class="viz">"MS4A1 marks B"</div></li>
+        <li class="stage"><span class="num">2</span><h4>Tokens</h4><div class="viz">MS · 4 · A · 1 · ␣marks · ␣B</div></li>
+        <li class="stage"><span class="num">3</span><h4>Token IDs</h4><div class="viz">[3653, 19, 32, 16, 15785, 426]</div></li>
+        <li class="stage"><span class="num">4</span><h4>Embeddings</h4><div class="viz emb" id="emb" aria-label="Each ID becomes a vector of thousands of numbers"></div></li>
+        <li class="stage"><span class="num">5</span><h4>Transformer layers</h4><div class="viz">attention + MLP, repeated dozens of times</div></li>
+        <li class="stage"><span class="num">6</span><h4>Scores</h4><div class="viz">one score per vocabulary token, ~100k–250k of them</div></li>
+        <li class="stage"><span class="num">7</span><h4>Probabilities</h4><div class="viz">softmax: scores → numbers that sum to 1</div></li>
+        <li class="stage"><span class="num">8</span><h4>Pick one</h4><div class="viz">→ <span class="k">␣cells</span>, appended to the input</div></li>
+      </ol>
+      <div class="loopnote">
+        <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66" fill="none" style="stroke:var(--pop)" stroke-width="2" stroke-linecap="round"/><path d="M20 4v5h-5" fill="none" style="stroke:var(--pop)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>Steps 1–8 run once per generated token. A 200-token answer is 200 full passes.</span>
+      </div>
+      <p class="note">Token IDs are illustrative; each model family has its own vocabulary.</p>
+    </div>
+
+    <div class="prose">
+      <h3>Temperature turns scores into choices</h3>
+      <p>The network's raw scores are called logits. Softmax turns them into probabilities, and temperature <i>T</i> divides the logits first. Low <i>T</i> sharpens the distribution toward the top token. High <i>T</i> flattens it, so unlikely tokens get picked more often. This is why the hook demo gave two answers.</p>
+    </div>
+
+    <figure class="mathfig">
+      <div class="math-block">\[ p_i \;=\; \frac{\exp\!\left( z_i / T \right)}{\displaystyle\sum_{j=1}^{V} \exp\!\left( z_j / T \right)} \]</div>
+      <dl class="symbols">
+        <div><dt>\(z_i\)</dt><dd>logit, the raw score for token \(i\)</dd></div>
+        <div><dt>\(T\)</dt><dd>temperature, a number above 0 that you choose</dd></div>
+        <div><dt>\(V\)</dt><dd>vocabulary size, often 100,000 to 250,000 tokens</dd></div>
+        <div><dt>\(p_i\)</dt><dd>probability that token \(i\) is picked next</dd></div>
+      </dl>
+    </figure>
+
+    <div class="prose" style="margin-top:30px">
+      <h3>Why it is called temperature</h3>
+      <p>This formula is the Boltzmann distribution from physics, with each token's energy set to minus its logit, \(E_i = -z_i\). A high logit is a deep, low-energy well, and temperature sets how often particles escape it.</p>
+    </div>
+
+    <div class="demo phys" id="phys">
+      <div class="demo-cap">Particles in an energy landscape · one well per token</div>
+      <div class="phys-top">
+        <div class="thermo" aria-hidden="true"><div class="thermo-tube"><div class="thermo-fill" id="thermoFill"></div></div><div class="thermo-bulb" id="thermoBulb"></div></div>
+        <div class="phys-ctl">
+          <div class="slider">
+            <label for="physT" class="ctl-label">Temperature</label>
+            <input type="range" id="physT" min="0.1" max="3" step="0.05" value="0.8">
+            <output id="physTVal" for="physT">0.80</output>
+          </div>
+          <div class="row" role="group" aria-label="Temperature presets">
+            <button class="chipbtn" type="button" data-t="0.1">Frozen · 0.1</button>
+            <button class="chipbtn" type="button" data-t="0.8">Room · 0.8</button>
+            <button class="chipbtn" type="button" data-t="2.5">Boiling · 2.5</button>
+          </div>
+          <p class="phys-state"><span id="physState"></span> <span class="meter" id="physHops"></span></p>
+        </div>
+      </div>
+      <canvas id="physCanvas" role="img" aria-label="72 particles moving between five energy wells, one per token. Deeper wells hold more particles; higher temperature makes the particles jitter more and hop between wells more often."></canvas>
+      <p class="note">Each particle is one sampled answer, and each well is a token whose depth comes from its logit. The bars count particles per well; the line across each bar is the softmax probability they settle around. Temperature and logits are shared with the explorer and the sampling demo below.</p>
+    </div>
+
+    <div class="phases">
+      <div class="phase cold"><b>Cold · \(T \to 0\)</b><span>Particles freeze in the deepest well. The model picks its top token every time.</span></div>
+      <div class="phase warm"><b>Warm · \(T = 1\)</b><span>Particles jiggle and sometimes hop. The model samples the distribution it learned.</span></div>
+      <div class="phase hot"><b>Hot · \(T \to \infty\)</b><span>Particles boil over every barrier. Every token approaches \(1/V\), and output turns random.</span></div>
+    </div>
+    <p class="mnemonic">Cold model, frozen answers. Hot model, boiling answers.</p>
+
+    <details class="explore" id="softmaxExplore">
+      <summary><span class="sum-icon" aria-hidden="true"></span><span class="sum-text"><span class="sum-title">Explore the softmax function</span><span class="sum-sub">Change the temperature and the logits, and watch each step of the formula and its curves update</span></span></summary>
+      <div class="explore-body">
+        <div class="ex-controls">
+          <div class="slider">
+            <label for="softT" class="ctl-label">Temperature \(T\)</label>
+            <input type="range" id="softT" min="0.1" max="3" step="0.05" value="0.8">
+            <output id="softTVal" for="softT">0.80</output>
+          </div>
+          <div class="logit-grid" id="logitGrid"></div>
+          <div class="row"><button class="btn ghost" id="softReset" type="button">Reset logits</button><span class="note" id="entropy"></span></div>
+        </div>
+
+        <div class="tablebox">
+          <table class="steps" id="softSteps">
+            <thead><tr><th>Token</th><th class="num">\(z_i\)</th><th class="num">\(z_i / T\)</th><th class="num">\(\exp(z_i / T)\)</th><th class="pcol">\(p_i\)</th></tr></thead>
+            <tbody></tbody>
+            <tfoot><tr><td colspan="3">Sum of the exponentials, the denominator</td><td class="num" id="softSum"></td><td class="pcol"><span class="num">1.000</span></td></tr></tfoot>
+          </table>
+        </div>
+
+        <div class="charts">
+          <figure class="chart">
+            <figcaption><b>Each token's probability across temperatures</b><span>The dashed line marks the current \(T\). Click or drag to move it.</span></figcaption>
+            <div class="chart-wrap"><svg id="chartT" viewBox="0 0 480 300" role="img" aria-label="Probability of each token as temperature goes from 0.1 to 3"></svg><div class="tip" id="tipT" hidden></div></div>
+          </figure>
+          <figure class="chart">
+            <figcaption><b>Probability of <code>␣CD19</code> as its own logit changes</b><span>Other logits stay fixed. Lower temperatures make the curve steeper. Click or drag to set the logit.</span></figcaption>
+            <div class="chart-wrap"><svg id="chartZ" viewBox="0 0 480 300" role="img" aria-label="Probability of CD19 as a function of its logit, at the current temperature and at 0.5, 1 and 2"></svg><div class="tip" id="tipZ" hidden></div></div>
+          </figure>
+        </div>
+        <p class="note">Low temperature pushes nearly all probability onto the top-scoring token. High temperature flattens the probabilities until every token is about equally likely. Subtracting the same number from every logit leaves the probabilities unchanged, which is why only the gaps between logits matter.</p>
+      </div>
+    </details>
+
+    <div class="demo">
+      <div class="demo-cap">Prompt: "The canonical surface marker of B cells is"</div>
+      <div class="slider">
+        <label for="temp" class="ctl-label">Temperature</label>
+        <input type="range" id="temp" min="0.1" max="3" step="0.05" value="0.8">
+        <output id="tempVal" for="temp">0.80</output>
+      </div>
+      <div class="trow thead" aria-hidden="true"><span>Token</span><span style="text-align:right">Logit</span><span>Probability</span><span></span><span style="text-align:right">Drawn</span></div>
+      <ol class="cands" id="tList"></ol>
+      <div class="row">
+        <button class="btn" id="tSample" type="button">Sample 30 times</button>
+        <span class="note" id="tSummary">Each draw picks one token in proportion to its probability.</span>
+      </div>
+      <p class="note" id="tNote"></p>
+      <p class="note">Only the top 8 of the vocabulary are shown, renormalized for the demo. CD20 is the protein encoded by MS4A1, so the model has learned two names for one marker.</p>
+    </div>
+
+    <div class="prose">
+      <h3>Attention: which earlier tokens matter</h3>
+      <p>Inside each transformer layer, attention lets every token gather information from the tokens before it. To predict what follows "are", the model needs "Cells" and the gene names, not "that". A token can never look at tokens after it.</p>
+    </div>
+
+    <div class="demo">
+      <div class="demo-cap">Click a token to see where it looks</div>
+      <div class="att-scroll"><div class="att-inner"><svg class="att-svg" id="attSvg" aria-hidden="true"></svg><div class="att-row" id="attRow"></div></div></div>
+      <p class="note" id="attInfo"></p>
+      <p class="note">Weights are illustrative. A real model has dozens of attention heads per layer, each with its own pattern.</p>
+    </div>
+
+    <div class="prose">
+      <h3>Pretraining, then instruction tuning</h3>
+      <p>A model trained only on documents continues documents. Given a question, it often writes more questions, because that is what text full of questions looks like. Instruction tuning then trains on conversations with good answers, so the most likely continuation becomes a helpful reply. Both are still next-token prediction.</p>
+    </div>
+
+    <div class="demo">
+      <div class="demo-cap">Same input, two models</div>
+      <div class="two">
+        <div class="panel"><h4>Base model (pretraining only)</h4><pre class="mono-box">Q: Which cell type expresses CD3E?
+<span class="gen" id="baseOut">Q: Which cell type expresses CD19?
+Q: Which cell type expresses CD14?
+Q: Which cell type expresses</span></pre></div>
+        <div class="panel"><h4>Chat model (instruction-tuned)</h4><pre class="mono-box">Q: Which cell type expresses CD3E?
+<span class="gen" id="chatOut">CD3E is expressed by T cells. It encodes the CD3ε chain of the T-cell receptor complex, so it is a pan-T-cell marker.</span></pre></div>
+      </div>
+      <div class="row"><button class="btn ghost" id="bcReplay" type="button">Replay both</button></div>
+    </div>
+  </div>
+</section>
+
+<section class="part" id="tokens">
+  <div class="wrap">
+    <div class="part-head prose">
+      <span class="eyebrow">35–45 min · Tokenization</span>
+      <h2>Models read tokens, not letters</h2>
+      <p>Before the network sees anything, a tokenizer cuts text into pieces from a fixed vocabulary and replaces each piece with an integer. Common English words are one token each. Gene symbols and DNA are rare in training text, so they shatter into many small pieces.</p>
+      <p>Two consequences matter for biology. Models are bad at letter-level tasks, such as counting bases or reversing a sequence, because they never see the letters. And sequences are expensive: you pay for context and time per token.</p>
+    </div>
+
+    <div class="demo">
+      <div class="demo-cap">Toy tokenizer</div>
+      <div class="row" id="presets" role="group" aria-label="Example inputs">
+        <button class="chipbtn" type="button" data-p="genes" aria-pressed="true">Gene symbols</button>
+        <button class="chipbtn" type="button" data-p="english" aria-pressed="false">English sentence</button>
+        <button class="chipbtn" type="button" data-p="strawberry" aria-pressed="false">strawberry</button>
+        <button class="chipbtn" type="button" data-p="markers" aria-pressed="false">50 marker genes</button>
+        <button class="chipbtn" type="button" data-p="fasta" aria-pressed="false">1 kb FASTA</button>
+      </div>
+      <label for="tokIn" class="ctl-label">Text (edit freely)</label>
+      <textarea id="tokIn" spellcheck="false"></textarea>
+      <label class="check"><input type="checkbox" id="tokIds"> Show what the model sees (token IDs)</label>
+      <div class="tok-out" id="tokOut" aria-live="polite"></div>
+      <div class="stats">
+        <div class="stat"><b id="sChars">0</b><span>Characters</span></div>
+        <div class="stat"><b id="sToks">0</b><span>Tokens</span></div>
+        <div class="stat"><b id="sRatio">0</b><span>Characters per token</span></div>
+      </div>
+      <p class="note">This tokenizer is a simplified stand-in written for the lesson. Real BPE tokenizers learn their vocabulary from data and split text differently, but they break gene names and DNA into pieces in the same way. English prose averages about 4 characters per token.</p>
+    </div>
+
+    <div class="prose">
+      <p class="note">Ask a model how many r letters are in "strawberry" and it often gets the count wrong. The tokens show why: the model receives three token IDs, not ten letters.</p>
+    </div>
+  </div>
+</section>
+
+<section class="part" id="context">
+  <div class="wrap">
+    <div class="part-head prose">
+      <span class="eyebrow">45–55 min · Context</span>
+      <h2>The context window is the only memory</h2>
+      <p>The model keeps nothing between requests. A chat app resends the whole transcript every turn: system prompt, every question, every answer. The context window is the maximum number of tokens one request can hold. When the transcript outgrows it, the oldest messages are dropped and the model never sees them.</p>
+    </div>
+
+    <div class="demo">
+      <div class="demo-cap">A five-turn conversation about PBMC 3k</div>
+      <div class="row" style="gap:18px 28px">
+        <div class="ctl"><span class="ctl-label">Context length</span>
+          <div class="seg" id="ctxLimit" role="group" aria-label="Context length">
+            <button type="button" data-l="512" aria-pressed="false">512</button>
+            <button type="button" data-l="1024" aria-pressed="true">1,024</button>
+            <button type="button" data-l="2048" aria-pressed="false">2,048</button>
+          </div>
+        </div>
+        <div class="ctl"><label for="ctxTurn" class="ctl-label">Turn</label><input type="range" id="ctxTurn" min="1" max="5" step="1" value="5"><span class="meter" id="ctxTurnVal">5 of 5</span></div>
+      </div>
+      <div class="gauge-wrap">
+        <div class="gauge" id="gauge"></div>
+        <div class="gauge-lbl"><span id="gaugeTxt"></span>
+          <span class="legend"><span><i class="r-system"></i>system</span><span><i class="r-user"></i>user</span><span><i class="r-assistant"></i>assistant</span></span></div>
+      </div>
+      <p class="status" id="ctxStatus"></p>
+      <ol class="msgs" id="msgs"></ol>
+      <div class="demo-cap" style="margin-top:6px">Tokens sent with each request</div>
+      <div class="reqchart" id="reqChart"></div>
+      <div class="reqx" id="reqX"></div>
+      <p class="note" id="reqNote"></p>
+      <p class="note">Set the context length to 512, then look at the reply to "what's my name?".</p>
+    </div>
+
+    <div class="prose">
+      <h3>What the model actually receives</h3>
+      <p>The API takes a list of messages, but the model reads one long token sequence. A chat template joins the messages with special tokens, and the model simply continues after the last line.</p>
+    </div>
+    <div class="codebox" style="margin-top:14px"><span class="fname">chat template (ChatML, used by Qwen models; other families use other markers)</span><pre>&lt;|im_start|&gt;system
+You are a concise bioinformatics assistant.&lt;|im_end|&gt;
+&lt;|im_start|&gt;user
+Hi! I'm Ana. I'm analysing the PBMC 3k dataset with scanpy.&lt;|im_end|&gt;
+&lt;|im_start|&gt;assistant
+Nice to meet you, Ana. PBMC 3k has about 2,700 cells …&lt;|im_end|&gt;
+&lt;|im_start|&gt;user
+What QC thresholds should I start with?&lt;|im_end|&gt;
+&lt;|im_start|&gt;assistant
+<span class="c">← the model generates from here</span></pre></div>
+  </div>
+</section>
+
+<section class="part" id="thinking">
+  <div class="wrap">
+    <div class="part-head prose">
+      <span class="eyebrow">55–62 min · Thinking mode</span>
+      <h2>Thinking is more tokens before the answer</h2>
+      <p>A reasoning model first writes intermediate text, then the answer. Nothing new happens inside: it is the same next-token loop. The extra tokens give later tokens more to attend to, which helps on problems with several steps. You pay in time and context.</p>
+    </div>
+
+    <div class="demo">
+      <div class="demo-cap">Same question, with and without thinking</div>
+      <div class="think-q row"><span class="note">Cluster 6 expresses</span><span class="marker">CD3E</span><span class="marker">CD8A</span><span class="marker">GZMB</span><span class="marker">NKG7</span><span class="marker off">CD4</span><span class="note">Which cell type?</span></div>
+      <div class="two">
+        <div class="panel">
+          <h4>Answer immediately</h4>
+          <div class="answer" id="fastAns"></div>
+          <span class="verdict bad" id="fastV">Misses CD3E</span>
+          <span class="meter" id="fastM"></span>
+        </div>
+        <div class="panel">
+          <h4>Think first</h4>
+          <span class="tlabel">Reasoning</span>
+          <div class="trace" id="thinkTrace"></div>
+          <span class="tlabel">Answer</span>
+          <div class="answer" id="thinkAns"></div>
+          <span class="verdict ok" id="thinkV">Uses every marker</span>
+          <span class="meter" id="thinkM"></span>
+        </div>
+      </div>
+      <div class="row"><button class="btn" id="thinkRun" type="button">Run both</button><span class="note">Scripted example. Times assume 25 tokens per second, typical for a small local model on a laptop.</span></div>
+    </div>
+    <div class="prose"><p class="note">In LM Studio, a reasoning model shows its trace in a collapsible block. Over the API, depending on the model and settings, the reasoning arrives inside the reply or in a separate field. Either way it counts as generated tokens.</p></div>
+  </div>
+</section>
+
+<section class="part" id="api">
+  <div class="wrap">
+    <div class="part-head prose">
+      <span class="eyebrow">62–85 min · Hands-on</span>
+      <h2>Talk to a local model from Python</h2>
+      <p>LM Studio runs a model on your laptop and serves it over HTTP with the same request format as OpenAI's API. Your Python code sends a list of messages and gets one new message back. No API key and no data leaves the machine.</p>
+    </div>
+
+    <div class="demo">
+      <div class="demo-cap">One request, one response</div>
+      <div class="wire" id="wire">
+        <div class="node">your_script.py<small>openai client</small></div>
+        <div class="link"><span class="lbl">POST /v1/chat/completions</span><span class="packet req"></span><span class="packet res"></span></div>
+        <div class="node">LM Studio server<small>localhost:1234</small></div>
+        <div class="link"><span class="packet req"></span><span class="packet res"></span></div>
+        <div class="node">Local model<small>weights in memory</small></div>
+      </div>
+      <div class="row"><button class="btn" id="wireGo" type="button">Send request</button><span class="note">The request carries the whole message list; the response carries one message plus token counts.</span></div>
+      <div class="two">
+        <div class="codebox"><span class="fname">request body</span><pre>{
+  "model": "qwen/qwen3-4b",
+  "messages": [
+    {"role": "system", "content": "You are a concise bioinformatics assistant."},
+    {"role": "user", "content": "Which cell type expresses CD14, LYZ and S100A8?"}
+  ],
+  "temperature": 0.7
+}</pre></div>
+        <div class="codebox"><span class="fname">response body (trimmed)</span><pre>{
+  "choices": [{
+    "message": {"role": "assistant",
+                "content": "Classical (CD14+) monocytes."},
+    "finish_reason": "stop"
+  }],
+  "usage": {"prompt_tokens": 41,
+            "completion_tokens": 9,
+            "total_tokens": 50}
+}</pre></div>
+      </div>
+    </div>
+
+    <div class="prose"><h3>Setup</h3><p>Load a model in LM Studio and start the server from the Developer tab, or from a terminal:</p></div>
+    <div class="codebox" style="margin-top:14px"><span class="fname">terminal</span><button class="copy" type="button">Copy</button><pre>lms server start --port 1234
+lms ls                                   <span class="c"># models you have downloaded</span>
+lms load &lt;model-key&gt;                     <span class="c"># load one into memory</span>
+curl http://localhost:1234/v1/models     <span class="c"># check the server answers</span>
+uv add openai</pre></div>
+
+    <div class="prose" style="margin-top:22px"><h3>First call</h3></div>
+    <div class="codebox" style="margin-top:14px"><span class="fname">first_call.py</span><button class="copy" type="button">Copy</button><pre>from openai import OpenAI
+
+client = OpenAI(base_url="http://localhost:1234/v1", api_key="lm-studio")  <span class="c"># any key works locally</span>
+MODEL = "qwen/qwen3-4b"  <span class="c"># use the identifier LM Studio shows for your model</span>
+
+resp = client.chat.completions.create(
+    model=MODEL,
+    messages=[
+        {"role": "system", "content": "You are a concise bioinformatics assistant."},
+        {"role": "user", "content": "Which cell type expresses CD14, LYZ and S100A8?"},
+    ],
+    temperature=0.7,
+)
+print(resp.choices[0].message.content)
+print(resp.usage)  <span class="c"># prompt_tokens, completion_tokens, total_tokens</span></pre></div>
+
+    <div class="prose" style="margin-top:34px"><h3>Exercises</h3></div>
+    <ol class="ex" style="margin-top:16px">
+      <li>
+        <h3>Build the chat yourself</h3>
+        <p class="prose">Keep the <code>messages</code> list in your own code and append every turn. This list is the context: watch <code>prompt_tokens</code> grow each turn.</p>
+        <div class="codebox"><span class="fname">chat.py</span><button class="copy" type="button">Copy</button><pre>from openai import OpenAI
+
+client = OpenAI(base_url="http://localhost:1234/v1", api_key="lm-studio")
+MODEL = "qwen/qwen3-4b"
+
+messages = [{"role": "system", "content": "You are a concise bioinformatics assistant."}]
+while True:
+    user = input("you> ")
+    if user in {"exit", "quit"}:
+        break
+    messages.append({"role": "user", "content": user})
+    resp = client.chat.completions.create(model=MODEL, messages=messages)
+    reply = resp.choices[0].message.content
+    messages.append({"role": "assistant", "content": reply})
+    print("model>", reply)
+    print(f"[sent {resp.usage.prompt_tokens} tokens this turn]")</pre></div>
+      </li>
+      <li>
+        <h3>Temperature 0 versus 1</h3>
+        <p class="prose">Send the hook prompt five times at each temperature and compare. At 0 the answers usually repeat word for word; at 1 they drift.</p>
+        <div class="codebox"><span class="fname">sampling.py</span><button class="copy" type="button">Copy</button><pre>q = [{"role": "user", "content":
+      "Cluster markers: CD14, LYZ, S100A8, S100A9, FCN1. Cell type? One line."}]
+
+for t in (0.0, 1.0):
+    print(f"--- temperature {t}")
+    for _ in range(5):
+        r = client.chat.completions.create(model=MODEL, messages=q,
+                                           temperature=t, max_tokens=40)
+        print(r.choices[0].message.content.strip())</pre></div>
+      </li>
+      <li>
+        <h3>Make the model forget</h3>
+        <p class="prose">In LM Studio, reload the model with the context length set to 1,024. Run <code>chat.py</code>, tell it your name, paste a long marker table, then ask for your name. Depending on LM Studio's overflow setting, older text is dropped or the request fails. Either way, the model cannot use what does not fit.</p>
+      </li>
+      <li>
+        <h3>Count tokens</h3>
+        <p class="prose">Compare a 50-gene list with a 1 kb FASTA sequence. The count includes a few tokens of chat-template overhead, so measure an empty message too and subtract it.</p>
+        <div class="codebox"><span class="fname">count_tokens.py</span><button class="copy" type="button">Copy</button><pre>def count_tokens(text: str) -&gt; int:
+    r = client.chat.completions.create(
+        model=MODEL, messages=[{"role": "user", "content": text}], max_tokens=1)
+    return r.usage.prompt_tokens
+
+overhead = count_tokens("")
+genes = "IL7R, CCR7, CD14, LYZ, MS4A1, CD8A, GNLY, NKG7, FCGR3A, PPBP"  <span class="c"># extend to 50</span>
+print("genes:", count_tokens(genes) - overhead)
+print("fasta:", count_tokens(open("seq.fa").read()) - overhead)</pre></div>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<section class="part" id="bridge">
+  <div class="wrap">
+    <div class="part-head prose">
+      <span class="eyebrow">85–90 min · Bridge</span>
+      <h2>Free text does not fit a pipeline</h2>
+      <p>The answers we collected today are sentences. A scanpy pipeline needs one row per cluster with the same columns every time. Next lesson we make the model fill in exactly this table, check every field, and score it against known labels.</p>
+    </div>
+    <div class="two" style="margin-top:8px">
+      <div class="panel"><span class="tlabel">What we get</span>
+        <p>"These look like classical CD14+ monocytes."</p>
+        <p>"Myeloid. S100A8/9 and LYZ point to monocytes, possibly neutrophils."</p>
+        <p>"CD14+ Mono"</p>
+      </div>
+      <div class="panel"><span class="tlabel">What a pipeline needs</span>
+        <div class="tablebox"><table>
+          <thead><tr><th>cluster_id</th><th>cell_type</th><th>confidence</th><th>supporting_markers</th></tr></thead>
+          <tbody><tr><td><code>1</code></td><td><code>CD14+ monocyte</code></td><td><code>0.9</code></td><td><code>CD14, LYZ, FCN1</code></td></tr></tbody>
+        </table></div>
+      </div>
+    </div>
+    <div class="remember">
+      <div><b>Next-token prediction.</b> Every output is one token at a time, chosen from probabilities.</div>
+      <div><b>Temperature.</b> Low is repeatable, high is varied. Set it on purpose.</div>
+      <div><b>Tokens.</b> Gene names and DNA cost many tokens, and models cannot see their letters.</div>
+      <div><b>Context.</b> The model sees only what you send in this request.</div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer><div class="wrap"><a href="../index.html">← Back to all lessons</a> · Lesson 1 of 5 · Coding agents for computational biology · Next: Structured outputs for biology</div></footer>
+
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] },
+  svg: { fontCache: 'global' },
+  options: { enableMenu: false }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js" defer></script>
+<script>
+(() => {
+/* lifecycle: if this script runs again (a live update of an open page), stop the previous run first */
+if (window.__lessonPage) window.__lessonPage.stop();
+const life = { alive: true, timers: new Set(), obs: [], ac: new AbortController() };
+window.__lessonPage = { stop(){ life.alive = false; life.timers.forEach(id => { clearInterval(id); clearTimeout(id); }); life.obs.forEach(o => o.disconnect()); life.ac.abort(); } };
+const every = (fn, ms) => { const id = setInterval(() => { if (life.alive) fn(); }, ms); life.timers.add(id); return id; };
+const track = o => { life.obs.push(o); return o; };
+const attempt = (label, fn) => { try { return fn(); } catch (e) { console.warn('[lesson 1] ' + label + ' unavailable:', e); } };
+const motionHooks = [];
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+let reduce = attempt('reduced-motion check', () => window.matchMedia('(prefers-reduced-motion: reduce)').matches) || false;
+const motionNote = $('#motionNote');
+if (reduce && motionNote) motionNote.hidden = false;
+if (motionNote) $('#motionOn').addEventListener('click', () => {
+  reduce = false; document.documentElement.classList.add('force-motion'); motionNote.hidden = true;
+  motionHooks.forEach(f => attempt('restart animation', f));
+});
+const sleep = ms => new Promise(r => { const id = setTimeout(() => { life.timers.delete(id); if (life.alive) r(); }, ms); life.timers.add(id); });
+const esc = s => s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const vis = t => t.replace(/^ /, '␣');
+const pct = p => (p >= 0.1 ? (p * 100).toFixed(0) : (p * 100).toFixed(1)) + '%';
+function fnv(s){ let h = 2166136261; for (let i = 0; i < s.length; i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+
+/* schedule highlight */
+const schedLinks = $$('.sched-bar a');
+attempt('schedule highlight', () => { const io = track(new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) schedLinks.forEach(a => a.classList.toggle('on', a.getAttribute('href') === '#' + e.target.id)); });
+}, { rootMargin: '-35% 0px -60% 0px' }));
+$$('section.part').forEach(s => io.observe(s)); });
+
+/* hero: next-token generation */
+const GEN = [
+  [[' B', .81], [' likely', .08], [' plasma', .05], [' naive', .03], [' T', .01]],
+  [[' cells', .94], [' lymphocytes', .03], ['-cells', .01], [' cell', .01], [' lymph', .005]],
+  [['.', .71], [',', .17], [' (', .06], [' from', .03], [';', .02]]
+];
+const genOut = $('#genOut'), genC = $('#genCands'), genStepEl = $('#genStep'), genPlay = $('#genPlay');
+let gStep = 0, gPhase = 'shown', gTimer = null;
+genOut.replaceChildren();
+function barList(ol, items, animate){
+  ol.innerHTML = '';
+  items.forEach(([t, p]) => {
+    const li = document.createElement('li'); li.className = 'cand';
+    li.innerHTML = `<code class="ctok">${esc(vis(t))}</code><span class="bar"><span class="fill"></span></span><span class="pct">${pct(p)}</span>`;
+    ol.appendChild(li);
+    const f = li.querySelector('.fill');
+    if (animate && !reduce){ f.style.width = '0%'; void f.offsetWidth; f.style.width = (p * 100) + '%'; }
+    else f.style.width = (p * 100) + '%';
+  });
+}
+function gShow(animate){ barList(genC, GEN[gStep], animate); genStepEl.textContent = gStep + 1; }
+function gTick(){
+  if (gPhase === 'shown'){ genC.firstElementChild.classList.add('picked'); gPhase = 'picked'; }
+  else if (gPhase === 'picked'){
+    const s = document.createElement('span'); s.className = 'g'; s.textContent = GEN[gStep][0][0]; genOut.appendChild(s);
+    if (gStep + 1 >= GEN.length){ gPhase = 'done'; } else { gStep++; gShow(true); gPhase = 'shown'; }
+  } else { genOut.innerHTML = ''; gStep = 0; gShow(true); gPhase = 'shown'; }
+}
+function gSetPlay(on){
+  clearInterval(gTimer); gTimer = null;
+  if (on) gTimer = every(gTick, 1400);
+  genPlay.textContent = on ? 'Pause' : 'Play';
+  genPlay.setAttribute('aria-pressed', on ? 'true' : 'false');
+}
+gShow(false);
+gSetPlay(!reduce);
+motionHooks.push(() => gSetPlay(true));
+genPlay.addEventListener('click', () => gSetPlay(!gTimer));
+$('#genNext').addEventListener('click', () => { gSetPlay(false); gTick(); });
+
+/* hook */
+const ANS = [
+  ['These look like classical CD14+ monocytes.', 3],
+  ['Monocytes, most likely the classical (CD14+) subset.', 2],
+  ['This is a myeloid cluster. S100A8, S100A9 and LYZ point to monocytes, possibly neutrophils.', 2],
+  ['CD14+ Mono', 1],
+  ['Classical monocytes. FCN1 and LYZ support this.', 1.5],
+  ['Probably neutrophils: S100A8 and S100A9 are very high in them.', .8]
+];
+function pickAns(excl){
+  const pool = ANS.map((a, i) => i === excl ? 0 : a[1]); const tot = pool.reduce((a, b) => a + b, 0);
+  let r = Math.random() * tot; for (let i = 0; i < pool.length; i++){ r -= pool[i]; if (r < 0) return i; } return 0;
+}
+let hookRun = 0;
+async function typeInto(el, text, run, guard){
+  if (reduce){ el.textContent = text; return; }
+  el.textContent = '';
+  for (let i = 1; i <= text.length; i++){ if (run !== guard()) return; el.textContent = text.slice(0, i); await sleep(16); }
+}
+$('#hookAsk').addEventListener('click', () => {
+  const run = ++hookRun; const a = pickAns(-1), b = pickAns(a);
+  typeInto($('#hookA'), ANS[a][0], run, () => hookRun);
+  typeInto($('#hookB'), ANS[b][0], run, () => hookRun);
+});
+
+/* stages */
+const emb = $('#emb');
+emb.replaceChildren();
+for (let i = 0; i < 48; i++){ const c = document.createElement('i'); c.style.opacity = (0.12 + (fnv('e' + i) % 88) / 100).toFixed(2); emb.appendChild(c); }
+const stages = $$('.stage'); let si = 0;
+let stagesTimer = null;
+const startStages = () => { if (!stagesTimer) stagesTimer = every(() => { stages.forEach((s, i) => s.classList.toggle('on', i === si)); si = (si + 1) % stages.length; }, 1100); };
+if (!reduce) startStages();
+motionHooks.push(startStages);
+
+/* temperature */
+const TC = [[' CD19', 3.1], [' CD20', 2.9], [' MS4A1', 2.4], [' CD79A', 2.0], [' PAX5', 1.0], [' the', 0.6], [' CD3E', -0.6], [' CD14', -1.0]];
+const tList = $('#tList'), tSlider = $('#temp'), tVal = $('#tempVal'), tNote = $('#tNote'), tSummary = $('#tSummary');
+tList.replaceChildren();
+const tRows = TC.map(([t, l]) => {
+  const li = document.createElement('li'); li.className = 'trow';
+  li.innerHTML = `<code class="ctok">${esc(vis(t))}</code><span class="lg">${l.toFixed(1)}</span><span class="bar"><span class="fill"></span></span><span class="pct"></span><span class="cnt"></span>`;
+  tList.appendChild(li); return li;
+});
+let tCounts = TC.map(() => 0), tProbs = [], tRun = 0;
+function softmax(ls, T){ const m = Math.max(...ls); const e = ls.map(l => Math.exp((l - m) / T)); const s = e.reduce((a, b) => a + b, 0); return e.map(x => x / s); }
+function tRender(){
+  const T = +tSlider.value; tVal.textContent = T.toFixed(2);
+  tProbs = softmax(TC.map(x => x[1]), T);
+  tRows.forEach((li, i) => {
+    li.querySelector('.fill').style.width = (tProbs[i] * 100) + '%';
+    li.querySelector('.pct').textContent = pct(tProbs[i]);
+    li.querySelector('.cnt').textContent = tCounts[i] ? tCounts[i] : '';
+  });
+  tNote.textContent = T < 0.3 ? 'Nearly greedy: ␣CD19 wins almost every draw. Low temperature makes output repeatable.'
+    : T > 1.3 ? 'Flattened: unlikely tokens such as ␣the and ␣CD3E (a T-cell marker) now get drawn. High temperature adds variety and errors.'
+    : 'Moderate: the real B-cell markers share most of the probability, and ␣CD3E stays rare.';
+}
+function drawIdx(p){ let r = Math.random(), a = 0; for (let i = 0; i < p.length; i++){ a += p[i]; if (r < a) return i; } return p.length - 1; }
+$('#tSample').addEventListener('click', async () => {
+  const run = ++tRun; tCounts = TC.map(() => 0); tRender();
+  for (let k = 0; k < 30; k++){
+    if (run !== tRun) return;
+    const i = drawIdx(tProbs); tCounts[i]++;
+    const li = tRows[i]; li.querySelector('.cnt').textContent = tCounts[i];
+    li.classList.remove('flash'); void li.offsetWidth; li.classList.add('flash');
+    if (!reduce) await sleep(60);
+  }
+  const distinct = tCounts.filter(c => c > 0).length;
+  tSummary.textContent = `30 draws at temperature ${(+tSlider.value).toFixed(2)} gave ${distinct} different token${distinct === 1 ? '' : 's'}.`;
+});
+tRender();
+
+/* softmax explorer */
+const SVGNS = 'http://www.w3.org/2000/svg';
+const SX = [
+  { t: ' CD19', z0: 3.1, c: 'c1', v: '--s1' },
+  { t: ' CD20', z0: 2.9, c: 'c2', v: '--s2' },
+  { t: ' MS4A1', z0: 2.4, c: 'c3', v: '--s3' },
+  { t: ' PAX5', z0: 1.0, c: 'c4', v: '--s4' },
+  { t: ' CD3E', z0: -0.6, c: 'c5', v: '--s5' }
+];
+let sxT = 0.8, sxZ = SX.map(s => s.z0);
+const softT = $('#softT'), softTVal = $('#softTVal');
+const lse = a => { const m = Math.max(...a); return m + Math.log(a.reduce((s, x) => s + Math.exp(x - m), 0)); };
+const sm = (zs, T) => { const l = lse(zs.map(z => z / T)); return zs.map(z => Math.exp(z / T - l)); };
+const SUP = { '0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹','-':'⁻' };
+function fmt(x){
+  if (!isFinite(x)) return '∞';
+  if (x !== 0 && (Math.abs(x) >= 1e5 || Math.abs(x) < 1e-3)){
+    const [m, e] = x.toExponential(2).split('e');
+    return `${m} × 10${String(+e).split('').map(ch => SUP[ch]).join('')}`;
+  }
+  return Math.abs(x) >= 100 ? x.toFixed(0) : Math.abs(x) >= 10 ? x.toFixed(1) : x.toFixed(3);
+}
+const pctT = p => (p * 100).toFixed(p >= 0.995 || p < 0.1 ? 1 : 0) + '%';
+const plain = t => t.trim();
+
+/* logit sliders and step table, built once */
+const logitGrid = $('#logitGrid'), stepBody = $('#softSteps tbody');
+logitGrid.replaceChildren(); stepBody.replaceChildren();
+const lgInputs = SX.map((s, i) => {
+  const d = document.createElement('div'); d.className = 'lg-item ' + s.c;
+  d.innerHTML = `<label for="lg${i}"><span class="sw"><i></i>${esc(vis(s.t))}</span><output id="lgv${i}"></output></label><input type="range" id="lg${i}" min="-4" max="8" step="0.1" value="${s.z0}">`;
+  logitGrid.appendChild(d);
+  const inp = d.querySelector('input');
+  inp.addEventListener('input', () => { sxZ[i] = +inp.value; sxRender(); });
+  return inp;
+});
+const stepRows = SX.map(s => {
+  const tr = document.createElement('tr'); tr.className = s.c;
+  tr.innerHTML = `<td><span class="sw" style="display:inline-flex;align-items:center;gap:6px"><i></i>${esc(vis(s.t))}</span></td><td class="num"></td><td class="num"></td><td class="num"></td><td class="pcol"><span class="pcell"><span class="bar"><span class="fill"></span></span><span class="num"></span></span></td>`;
+  stepBody.appendChild(tr); return tr;
+});
+$('#softReset').addEventListener('click', () => { sxZ = SX.map(s => s.z0); lgInputs.forEach((inp, i) => { inp.value = SX[i].z0; }); sxRender(); });
+
+function el(tag, attrs, parent, text){
+  const n = document.createElementNS(SVGNS, tag);
+  for (const k in attrs) n.setAttribute(k, attrs[k]);
+  if (text != null) n.textContent = text;
+  if (parent) parent.appendChild(n);
+  return n;
+}
+const W = 480, H = 300, M = { l: 48, r: 82, t: 14, b: 44 };
+const PW = W - M.l - M.r, PH = H - M.t - M.b;
+const Yp = p => M.t + (1 - p) * PH;
+function frame(svg, xTicks, X, xTitle){
+  svg.replaceChildren();
+  const g = el('g', {}, svg);
+  [0, .25, .5, .75, 1].forEach(p => {
+    el('line', { class: 'grid', x1: M.l, x2: W - M.r, y1: Yp(p), y2: Yp(p) }, g);
+    el('text', { x: M.l - 8, y: Yp(p) + 4, 'text-anchor': 'end' }, g, (p * 100) + '%');
+  });
+  el('line', { class: 'axis', x1: M.l, x2: W - M.r, y1: Yp(0), y2: Yp(0) }, g);
+  xTicks.forEach(v => {
+    el('line', { class: 'axis', x1: X(v), x2: X(v), y1: Yp(0), y2: Yp(0) + 4 }, g);
+    el('text', { x: X(v), y: Yp(0) + 17, 'text-anchor': 'middle' }, g, String(v));
+  });
+  el('text', { x: M.l + PW / 2, y: H - 6, 'text-anchor': 'middle' }, g, xTitle);
+  return g;
+}
+const pathOf = pts => pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join('');
+function dodge(items, lo, hi, gap){
+  items.sort((a, b) => a.y - b.y);
+  for (let i = 1; i < items.length; i++) if (items[i].y - items[i - 1].y < gap) items[i].y = items[i - 1].y + gap;
+  const over = items.length ? items[items.length - 1].y - hi : 0;
+  if (over > 0) for (let i = items.length - 1; i >= 0; i--){ items[i].y -= over; if (i && items[i].y - items[i - 1].y >= gap) break; }
+  items.forEach(it => { it.y = Math.max(lo, it.y); });
+  return items;
+}
+function placeTip(tip, svg, vx, vy, html){
+  const r = svg.getBoundingClientRect(), k = r.width / W;
+  tip.innerHTML = html; tip.hidden = false;
+  const tw = tip.offsetWidth, px = vx * k, py = vy * k;
+  let left = px + 14; if (left + tw > r.width) left = px - tw - 14;
+  tip.style.left = Math.max(0, left) + 'px';
+  tip.style.top = Math.max(0, Math.min(py - 20, r.height - tip.offsetHeight)) + 'px';
+}
+const toView = (svg, e) => { const r = svg.getBoundingClientRect(); return [(e.clientX - r.left) / r.width * W, (e.clientY - r.top) / r.height * H]; };
+const swatch = (s, txt) => `<span class="sw ${s.c}"><i></i>${txt}</span>`;
+
+/* chart 1: p_i against T */
+const chartT = $('#chartT'), tipT = $('#tipT');
+const T0 = 0.1, T1 = 3, XT = T => M.l + (T - T0) / (T1 - T0) * PW;
+const TfromX = x => Math.min(T1, Math.max(T0, T0 + (x - M.l) / PW * (T1 - T0)));
+let hoverT = null;
+function drawT(){
+  frame(chartT, [0.5, 1, 1.5, 2, 2.5, 3], XT, 'temperature T');
+  const N = 140, curves = SX.map(() => []);
+  for (let k = 0; k <= N; k++){ const T = T0 + (T1 - T0) * k / N; sm(sxZ, T).forEach((p, i) => curves[i].push([XT(T), Yp(p)])); }
+  el('line', { x1: XT(sxT), x2: XT(sxT), y1: M.t, y2: Yp(0), style: 'stroke:var(--ink)', 'stroke-width': 1.25, 'stroke-dasharray': '4 4', opacity: .6 }, chartT);
+  el('text', { x: XT(sxT), y: M.t + 10, 'text-anchor': XT(sxT) > W - M.r - 40 ? 'end' : 'start', dx: XT(sxT) > W - M.r - 40 ? -5 : 5, class: 'dl' }, chartT, 'T = ' + sxT.toFixed(2));
+  if (hoverT != null) el('line', { x1: XT(hoverT), x2: XT(hoverT), y1: M.t, y2: Yp(0), style: 'stroke:var(--muted)', 'stroke-width': 1 }, chartT);
+  curves.forEach((pts, i) => el('path', { d: pathOf(pts), fill: 'none', style: `stroke:var(${SX[i].v})`, 'stroke-width': 2, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }, chartT));
+  const now = sm(sxZ, sxT);
+  now.forEach((p, i) => el('circle', { cx: XT(sxT), cy: Yp(p), r: 4.5, style: `fill:var(${SX[i].v});stroke:var(--surface)`, 'stroke-width': 2 }, chartT));
+  const ends = sm(sxZ, T1);
+  dodge(SX.map((s, i) => ({ i, y0: Yp(ends[i]), y: Yp(ends[i]) + 4 })), M.t + 8, Yp(0), 14).forEach(it => {
+    el('line', { x1: XT(T1) + 2, y1: it.y0, x2: XT(T1) + 10, y2: it.y - 4, style: `stroke:var(${SX[it.i].v})`, 'stroke-width': 1.25 }, chartT);
+    el('text', { x: XT(T1) + 13, y: it.y, class: 'dl' }, chartT, plain(SX[it.i].t));
+  });
+  el('rect', { x: M.l, y: M.t, width: PW, height: PH, fill: 'transparent', id: 'hitT' }, chartT);
+}
+function tipForT(T){
+  const ps = sm(sxZ, T), order = ps.map((p, i) => i).sort((a, b) => ps[b] - ps[a]);
+  return `<b>T = ${T.toFixed(2)}</b><br>` + order.map(i => swatch(SX[i], `${esc(plain(SX[i].t)).padEnd(6, ' ')} ${pctT(ps[i])}`)).join('');
+}
+let dragT = false;
+chartT.addEventListener('pointermove', e => {
+  const [x] = toView(chartT, e); if (x < M.l || x > W - M.r){ hoverT = null; tipT.hidden = true; drawT(); return; }
+  const T = TfromX(x);
+  if (dragT){ setTemp(Math.round(T * 20) / 20); }
+  hoverT = T; drawT(); placeTip(tipT, chartT, XT(T), M.t + 30, tipForT(T));
+});
+chartT.addEventListener('pointerdown', e => {
+  const [x] = toView(chartT, e); if (x < M.l || x > W - M.r) return;
+  dragT = true; chartT.setPointerCapture(e.pointerId); setTemp(Math.round(TfromX(x) * 20) / 20);
+});
+chartT.addEventListener('pointerup', () => { dragT = false; });
+chartT.addEventListener('pointerleave', () => { if (!dragT){ hoverT = null; tipT.hidden = true; drawT(); } });
+
+/* chart 2: p_CD19 against its own logit */
+const chartZ = $('#chartZ'), tipZ = $('#tipZ');
+const Z0 = -4, Z1 = 8, XZ = z => M.l + (z - Z0) / (Z1 - Z0) * PW;
+const ZfromX = x => Math.min(Z1, Math.max(Z0, Z0 + (x - M.l) / PW * (Z1 - Z0)));
+const REF = [{ T: 0.5, dash: '2 4', at: 0.85 }, { T: 1, dash: '7 4', at: 0.5 }, { T: 2, dash: '', at: 0.18 }];
+const pOwn = (z, T) => { const others = sxZ.slice(1).map(v => v / T); return 1 / (1 + Math.exp(lse(others) - z / T)); };
+const zAt = (L, T) => T * (lse(sxZ.slice(1).map(v => v / T)) + Math.log(L / (1 - L)));
+let hoverZ = null;
+function drawZ(){
+  frame(chartZ, [-4, -2, 0, 2, 4, 6, 8], XZ, 'logit of ␣CD19, z');
+  if (hoverZ != null) el('line', { x1: XZ(hoverZ), x2: XZ(hoverZ), y1: M.t, y2: Yp(0), style: 'stroke:var(--muted)', 'stroke-width': 1 }, chartZ);
+  const N = 160, curve = T => { const pts = []; for (let k = 0; k <= N; k++){ const z = Z0 + (Z1 - Z0) * k / N; pts.push([XZ(z), Yp(pOwn(z, T))]); } return pts; };
+  REF.forEach(r => el('path', { d: pathOf(curve(r.T)), fill: 'none', style: 'stroke:var(--muted)', 'stroke-width': 1.5, 'stroke-dasharray': r.dash, opacity: .75 }, chartZ));
+  el('path', { d: pathOf(curve(sxT)), fill: 'none', style: 'stroke:var(--s1)', 'stroke-width': 2.5, 'stroke-linejoin': 'round' }, chartZ);
+  REF.forEach(r => {
+    const z = zAt(r.at, r.T), x = Math.min(W - M.r - 4, Math.max(M.l + 4, XZ(z) + 10));
+    el('text', { x, y: Yp(r.at) + 4 }, chartZ, 'T = ' + r.T);
+  });
+  const zl = zAt(0.5, sxT), lx = XZ(zl) - 8;
+  if (lx > M.l + 60) el('text', { x: lx, y: Yp(0.5) - 6, 'text-anchor': 'end', class: 'dl' }, chartZ, 'T = ' + sxT.toFixed(2));
+  else el('text', { x: M.l + 6, y: M.t + 12, class: 'dl' }, chartZ, 'bold: T = ' + sxT.toFixed(2));
+  const pz = pOwn(sxZ[0], sxT);
+  el('line', { x1: XZ(sxZ[0]), x2: XZ(sxZ[0]), y1: Yp(pz), y2: Yp(0), style: 'stroke:var(--s1)', 'stroke-width': 1, 'stroke-dasharray': '3 3' }, chartZ);
+  el('circle', { cx: XZ(sxZ[0]), cy: Yp(pz), r: 5.5, style: 'fill:var(--s1);stroke:var(--surface)', 'stroke-width': 2 }, chartZ);
+  el('rect', { x: M.l, y: M.t, width: PW, height: PH, fill: 'transparent' }, chartZ);
+}
+let dragZ = false;
+const setZ0 = z => { sxZ[0] = Math.round(z * 10) / 10; lgInputs[0].value = sxZ[0]; sxRender(); };
+chartZ.addEventListener('pointermove', e => {
+  const [x] = toView(chartZ, e); if (x < M.l || x > W - M.r){ hoverZ = null; tipZ.hidden = true; drawZ(); return; }
+  const z = ZfromX(x); if (dragZ) setZ0(z);
+  hoverZ = z; drawZ();
+  const rows = [{ T: sxT, lbl: 'now' }, ...REF.map(r => ({ T: r.T, lbl: '' }))].map(r => `T = ${r.T.toFixed(2)}${r.lbl ? ' (now)' : ''}: ${pctT(pOwn(z, r.T))}`).join('<br>');
+  placeTip(tipZ, chartZ, XZ(z), M.t + 30, `<b>z = ${z.toFixed(1)}</b><br>${rows}`);
+});
+chartZ.addEventListener('pointerdown', e => {
+  const [x] = toView(chartZ, e); if (x < M.l || x > W - M.r) return;
+  dragZ = true; chartZ.setPointerCapture(e.pointerId); setZ0(ZfromX(x));
+});
+chartZ.addEventListener('pointerup', () => { dragZ = false; });
+chartZ.addEventListener('pointerleave', () => { if (!dragZ){ hoverZ = null; tipZ.hidden = true; drawZ(); } });
+
+function sxRender(){
+  const ps = sm(sxZ, sxT), scaled = sxZ.map(z => z / sxT), ex = scaled.map(v => Math.exp(v));
+  stepRows.forEach((tr, i) => {
+    const td = tr.children;
+    td[1].textContent = sxZ[i].toFixed(1);
+    td[2].textContent = scaled[i].toFixed(2);
+    td[3].textContent = fmt(ex[i]);
+    td[4].querySelector('.fill').style.width = (ps[i] * 100) + '%';
+    td[4].querySelector('.num').textContent = pctT(ps[i]);
+    $('#lgv' + i).textContent = sxZ[i].toFixed(1);
+  });
+  $('#softSum').textContent = fmt(ex.reduce((a, b) => a + b, 0));
+  const Hbits = -ps.reduce((a, p) => a + (p > 0 ? p * Math.log2(p) : 0), 0);
+  $('#entropy').textContent = `Entropy ${Hbits.toFixed(2)} bits. 0 means one token is certain; ${Math.log2(SX.length).toFixed(2)} means all ${SX.length} are equally likely.`;
+  drawT(); drawZ();
+}
+
+function setTemp(v){
+  v = Math.min(3, Math.max(0.1, v));
+  sxT = v; tSlider.value = v; softT.value = v; softTVal.textContent = v.toFixed(2);
+  tRun++; tCounts = TC.map(() => 0); tSummary.textContent = 'Each draw picks one token in proportion to its probability.';
+  tRender(); sxRender();
+  tempHooks.forEach(f => f());
+}
+const tempHooks = [];
+tSlider.addEventListener('input', () => setTemp(+tSlider.value));
+softT.addEventListener('input', () => setTemp(+softT.value));
+setTemp(0.8);
+
+/* physics: particles in a Boltzmann energy landscape */
+(() => {
+  const cv = $('#physCanvas'), ctx = cv.getContext('2d');
+  const physT = $('#physT'), physTVal = $('#physTVal'), fill = $('#thermoFill'), bulb = $('#thermoBulb');
+  const stateEl = $('#physState'), hopsEl = $('#physHops');
+  const N = 72, HC = 346, TOP = 46, DEPTH = 150, MX = 20, RATE = 1.1, THETA = 3;
+  let WC = 600, dpr = 1, C = {}, font = 'monospace';
+  const P = [], frac = SX.map(() => 0);
+
+  const toRGB = h => {
+    h = (h || '').trim();
+    if (h[0] === '#'){ if (h.length === 4) h = '#' + h[1] + h[1] + h[2] + h[2] + h[3] + h[3]; return [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)); }
+    const m = h.match(/[\d.]+/g); return m ? m.slice(0, 3).map(Number) : [128, 128, 128];
+  };
+  function readColors(){
+    const cs = getComputedStyle(document.documentElement);
+    ['--ink', '--muted', '--line', '--surface', '--sunk', '--bg', '--cold', '--hot', '--s1', '--s2', '--s3', '--s4', '--s5'].forEach(k => { C[k] = cs.getPropertyValue(k).trim(); });
+    font = cs.getPropertyValue('--mono').trim() || 'monospace';
+  }
+  const heat = () => Math.min(1, Math.max(0, (sxT - 0.1) / 2.9));
+  const mix = t => { const a = toRGB(C['--cold']), b = toRGB(C['--hot']); return `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * t)).join(',')})`; };
+  const randn = () => { let u = 0, v = 0; while (!u) u = Math.random(); while (!v) v = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
+
+  const gapX = () => (WC - 2 * MX) / SX.length;
+  const wellX = i => MX + (i + 0.5) * gapX();
+  const sig = () => gapX() * 0.2;
+  const depths = () => { const mn = Math.min(...sxZ), d = sxZ.map(z => z - mn + 0.6), mx = Math.max(...d); return d.map(v => v / mx); };
+  function yAt(x, D){ const s = sig(); let y = TOP; for (let i = 0; i < D.length; i++){ const dx = x - wellX(i); y += D[i] * DEPTH * Math.exp(-dx * dx / (2 * s * s)); } return y; }
+  const amp = () => sig() * (0.05 + 0.5 * Math.sqrt(sxT / 3));
+  const ampH = () => 18 * (sxT / 3);
+
+  function seed(){
+    const ps = sm(sxZ, sxT); P.length = 0;
+    for (let k = 0; k < N; k++) P.push({ w: drawIdx(ps), u: randn() * amp() * 0.7, h: 0, fly: null });
+    counts().forEach((c, i) => { frac[i] = c / N; });
+  }
+  const counts = () => { const c = SX.map(() => 0); P.forEach(p => { c[p.w]++; }); return c; };
+
+  let hops = 0;
+  function step(dt){
+    const a = amp(), aH = ampH(), lim = sig() * 1.6;
+    for (const p of P){
+      if (p.fly){ p.fly.t += dt / p.fly.dur; if (p.fly.t >= 1){ p.fly = null; p.u = p.landU; p.h = 0; } continue; }
+      p.u += -THETA * p.u * dt + a * Math.sqrt(2 * THETA * dt) * randn();
+      p.u = Math.max(-lim, Math.min(lim, p.u));
+      p.h += -THETA * p.h * dt + aH * Math.sqrt(2 * THETA * dt) * randn();
+      if (Math.random() < RATE * dt){
+        let j = Math.floor(Math.random() * (SX.length - 1)); if (j >= p.w) j++;
+        if (Math.random() < Math.min(1, Math.exp((sxZ[j] - sxZ[p.w]) / sxT))){
+          p.landU = randn() * a * 0.5;
+          p.fly = { from: wellX(p.w) + p.u, to: wellX(j) + p.landU, t: 0, dur: 0.45 + 0.12 * Math.abs(j - p.w) };
+          p.w = j; hops++;
+        }
+      }
+    }
+    const c = counts(), k = Math.min(1, dt * 3);
+    c.forEach((v, i) => { frac[i] += (v / N - frac[i]) * k; });
+  }
+
+  function draw(){
+    const D = depths(), narrow = WC < 520;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, WC, HC);
+    // landscape
+    const floorY = TOP + DEPTH + 14;
+    ctx.beginPath(); ctx.moveTo(0, floorY);
+    for (let x = 0; x <= WC; x += 2) ctx.lineTo(x, yAt(x, D));
+    ctx.lineTo(WC, floorY); ctx.closePath();
+    ctx.fillStyle = C['--sunk']; ctx.fill();
+    ctx.beginPath();
+    for (let x = 0; x <= WC; x += 2){ const y = yAt(x, D); x ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
+    ctx.strokeStyle = C['--ink']; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
+    // axis hint
+    ctx.font = `${narrow ? 11 : 12}px ${font}`; ctx.fillStyle = C['--muted']; ctx.textAlign = 'left';
+    ctx.fillText('↑ energy  E = −logit', 10, 18);
+    // particles
+    const col = mix(heat()), r = narrow ? 4 : 5;
+    ctx.fillStyle = col; ctx.strokeStyle = C['--surface']; ctx.lineWidth = 1.5;
+    for (const p of P){
+      let x, y;
+      if (p.fly){
+        const t = p.fly.t, y0 = yAt(p.fly.from, D), y1 = yAt(p.fly.to, D), lift = Math.max(y0, y1) - TOP + 12;
+        x = p.fly.from + (p.fly.to - p.fly.from) * t;
+        y = y0 + (y1 - y0) * t - 4 * t * (1 - t) * lift - r;
+      } else {
+        x = wellX(p.w) + p.u; y = yAt(x, D) - r - Math.abs(p.h);
+      }
+      ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    }
+    // labels and bars
+    const labY = floorY + 22, base = HC - 26, maxH = base - labY - 14, bw = Math.min(44, gapX() * 0.42), ps = sm(sxZ, sxT);
+    ctx.textAlign = 'center';
+    SX.forEach((s, i) => {
+      const cx = wellX(i);
+      ctx.font = `600 ${narrow ? 11 : 13}px ${font}`; ctx.fillStyle = C['--ink'];
+      ctx.fillText(s.t.trim(), cx, labY);
+      ctx.fillStyle = C['--line']; ctx.fillRect(cx - bw / 2, base - maxH, bw, maxH);
+      const h = Math.max(0, frac[i]) * maxH;
+      ctx.fillStyle = C[s.v]; ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(cx - bw / 2, base - h, bw, h, [Math.min(4, h), Math.min(4, h), 0, 0]); else ctx.rect(cx - bw / 2, base - h, bw, h);
+      ctx.fill();
+      const ty = base - ps[i] * maxH;
+      ctx.strokeStyle = C['--ink']; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(cx - bw / 2 - 5, ty); ctx.lineTo(cx + bw / 2 + 5, ty); ctx.stroke();
+      ctx.font = `${narrow ? 11 : 12}px ${font}`; ctx.fillStyle = C['--muted'];
+      ctx.fillText(Math.round(frac[i] * 100) + '%', cx, base + 17);
+    });
+  }
+
+  function resize(){
+    dpr = Math.min(2, window.devicePixelRatio || 1);
+    WC = Math.max(280, cv.clientWidth || 600);
+    cv.width = Math.round(WC * dpr); cv.height = Math.round(HC * dpr);
+    draw();
+  }
+
+  function stateText(){
+    if (sxT < 0.35) return 'Frozen. Particles barely move and stay in the deepest wells.';
+    if (sxT < 1.4) return 'Warm. Particles jiggle and now and then hop into a nearby deep well.';
+    return 'Boiling. Particles hop over every barrier and spread across all wells.';
+  }
+  function ui(){
+    physT.value = sxT; physTVal.textContent = sxT.toFixed(2);
+    const h = heat(), c = mix(h);
+    fill.style.height = (10 + 90 * h) + '%'; fill.style.background = c; bulb.style.background = c;
+    stateEl.textContent = stateText();
+    $$('.phys [data-t]').forEach(b => b.setAttribute('aria-pressed', Math.abs(+b.dataset.t - sxT) < 0.01 ? 'true' : 'false'));
+    if (reduce){ seed(); hopsEl.textContent = ''; }
+    if (!running) draw();
+  }
+
+  let running = false, onScreen = true, lastTick = 0, simT = 0, hopS0 = 0, hopN0 = 0, hopRate = null;
+  const DT = 1 / 60;
+  function tick(dt){
+    lastTick = performance.now();
+    if (!onScreen || document.hidden || !life.alive) return;
+    step(dt); draw(); simT += dt;
+    if (simT - hopS0 >= 1){
+      const r = (hops - hopN0) / (simT - hopS0);
+      hopRate = hopRate == null ? r : 0.5 * hopRate + 0.5 * r;
+      hopsEl.textContent = `\u00b7 ${hopRate.toFixed(1)} hops per second`;
+      hopS0 = simT; hopN0 = hops;
+    }
+  }
+  function loop(){ if (!running || !life.alive) return; tick(DT); requestAnimationFrame(loop); }
+  function start(){ if (running || reduce) return; running = true; requestAnimationFrame(loop); }
+  function stop(){ running = false; }
+  /* backup ticker: if the browser throttles or pauses animation frames, keep the particles moving */
+  every(() => { if (running && !document.hidden && performance.now() - lastTick > 200) tick(0.05); }, 50);
+
+  physT.addEventListener('input', () => setTemp(+physT.value));
+  $$('.phys [data-t]').forEach(b => b.addEventListener('click', () => setTemp(+b.dataset.t)));
+  readColors(); seed(); resize(); ui();
+  tempHooks.push(ui);
+  logitGrid.addEventListener('input', () => { if (!running) draw(); });
+  $('#softReset').addEventListener('click', () => { if (!running) draw(); });
+  window.addEventListener('resize', resize);
+  attempt('canvas resize observer', () => track(new ResizeObserver(resize)).observe(cv));
+  attempt('canvas visibility observer', () => track(new IntersectionObserver(es => es.forEach(e => { onScreen = e.isIntersecting; }))).observe(cv));
+  start();
+  motionHooks.push(start);
+  const retheme = () => { readColors(); ui(); draw(); };
+  attempt('font loading hook', () => document.fonts.ready.then(draw));
+})();
+
+/* attention */
+const AT = ['Cells', ' that', ' express', ' CD', '79', 'A', ' and', ' MS', '4', 'A', '1', ' are'];
+const AT_LAST = [.26, .03, .07, .08, .05, .11, .02, .08, .03, .05, .12, .10];
+const attRow = $('#attRow'), attSvg = $('#attSvg'), attInfo = $('#attInfo');
+let attSel = AT.length - 1;
+attRow.replaceChildren();
+const attBtns = AT.map((t, i) => {
+  const b = document.createElement('button'); b.type = 'button'; b.className = 'att-tok';
+  b.innerHTML = `<span>${esc(vis(t))}</span><small></small>`;
+  b.addEventListener('click', () => { attSel = i; attDraw(); });
+  attRow.appendChild(b); return b;
+});
+function attW(i){
+  if (i === AT.length - 1) return AT_LAST;
+  const w = []; for (let j = 0; j <= i; j++){ let v = Math.exp(-(i - j) / 2.2); if (j === 0) v += .5; w.push(v); }
+  const s = w.reduce((a, b) => a + b, 0); return w.map(v => v / s);
+}
+function attDraw(){
+  const w = attW(attSel), H = 120, W = attRow.scrollWidth;
+  attSvg.setAttribute('viewBox', `0 0 ${W} ${H}`); attSvg.setAttribute('width', W); attSvg.setAttribute('height', H);
+  const cx = k => attBtns[k].offsetLeft + attBtns[k].offsetWidth / 2;
+  const mx = Math.max(...w); let out = '';
+  for (let j = 0; j < w.length; j++){
+    const r = w[j] / mx, x1 = cx(attSel), x2 = cx(j), op = (0.15 + 0.85 * r).toFixed(2);
+    if (j === attSel){ out += `<circle cx="${x1}" cy="${H - 12}" r="${(4 + 6 * r).toFixed(1)}" fill="none" style="stroke:var(--pop)" stroke-width="2" opacity="${op}"/>`; continue; }
+    const h = Math.min(H - 10, 18 + Math.abs(attSel - j) * 8);
+    out += `<path d="M${x1} ${H} Q${(x1 + x2) / 2} ${H - 2 * h} ${x2} ${H}" fill="none" style="stroke:var(--acc)" stroke-width="${(1 + 8 * r).toFixed(1)}" stroke-linecap="round" opacity="${op}"/>`;
+  }
+  attSvg.innerHTML = out;
+  attBtns.forEach((b, k) => {
+    b.classList.toggle('sel', k === attSel); b.classList.toggle('future', k > attSel);
+    b.setAttribute('aria-pressed', k === attSel ? 'true' : 'false');
+    b.querySelector('small').textContent = k <= attSel ? Math.round(w[k] * 100) + '%' : '—';
+  });
+  attInfo.textContent = attSel === AT.length - 1
+    ? 'To predict the token after ␣are, most attention goes to "Cells" and the gene-name pieces. That is the evidence for ␣B.'
+    : `"${vis(AT[attSel])}" can attend only to itself and earlier tokens. Later tokens are masked, shown faded.`;
+}
+attDraw();
+window.addEventListener('resize', attDraw);
+attempt('font loading hook', () => document.fonts.ready.then(attDraw));
+
+/* base vs chat replay */
+let bcRun = 0;
+$('#bcReplay').addEventListener('click', () => {
+  const run = ++bcRun;
+  [['#baseOut'], ['#chatOut']].forEach(([sel]) => { const el = $(sel); const text = el.dataset.full || el.textContent; el.dataset.full = text; typeInto(el, text, run, () => bcRun); });
+});
+
+/* tokenizer */
+const WORDS = new Set(('the a an of and to in is are was be it its this that these those for with on by as at from or not how many what which who why where when cell cells gene genes marker markers express expresses expressing expressed type types cluster clusters protein proteins blood human data model models token tokens word words letter letters count sequence single high low so there do does did you your i my me we our can could would should will use used using b t r are').split(' '));
+const FRAG = new Set(('str aw berry ing ed er es tion ly re un in on at en an or al ic ex ess ent ell ers mon cyt ocyte ocytes lymph phage macro mono seq gen ome ity ous st th ch sh pro tein ated ation ment ness able ph yt ur ar ir ol il el om um ap ip op up ad id od ab qu demo synthetic kb').split(' '));
+const UP = new Set(('CD HLA MT CO DR DP DQ LY LYZ GZ NK IL CCR CCL FC GR KL RB PR PT RC MAL RPS RPL TC LE SEL GN ST AIF FT PP BP MS TY RO VC AN LG ALS CT SS PTP NKG FCER CST LST TYRO PBMC').split(' '));
+const NT = 'ACGT';
+for (const a of NT) for (const b of NT){ UP.add(a + b); for (const c of NT){ if (fnv(a + b + c) % 2 === 0) UP.add(a + b + c); for (const d of NT){ if (fnv(a + b + c + d) % 6 === 0) UP.add(a + b + c + d); } } }
+function tokenize(text){
+  const out = [], re = /\n+| ?[A-Za-z]+| ?\d{1,3}| ?[^\sA-Za-z\d]+|\s+/g; let m;
+  while ((m = re.exec(text))){
+    const piece = m[0];
+    if (/^\s+$/.test(piece)){ out.push(piece); continue; }
+    const lead = piece[0] === ' ' ? ' ' : '', core = lead ? piece.slice(1) : piece;
+    if (!/^[A-Za-z]+$/.test(core)){ out.push(piece); continue; }
+    const lower = core.toLowerCase(), cap = lower[0].toUpperCase() + lower.slice(1);
+    if (WORDS.has(lower) && (core === lower || core === cap)){ out.push(piece); continue; }
+    let p = 0, first = true;
+    while (p < core.length){
+      let take = 1;
+      for (let L = Math.min(6, core.length - p); L >= 2; L--){ const s = core.slice(p, p + L); if (FRAG.has(s) || UP.has(s)){ take = L; break; } }
+      out.push((first ? lead : '') + core.slice(p, p + take)); first = false; p += take;
+    }
+  }
+  return out;
+}
+const GENES50 = 'IL7R, CCR7, CD14, LYZ, S100A4, MS4A1, CD8A, FCGR3A, MS4A7, GNLY, NKG7, FCER1A, CST3, PPBP, CD3E, CD3D, CD79A, CD79B, CD19, CD4, GZMB, GZMK, PRF1, KLRD1, KLRB1, HLA-DRA, HLA-DRB1, HLA-DPA1, CD74, S100A8, S100A9, FCN1, VCAN, LGALS3, TYROBP, FTL, FTH1, LST1, AIF1, CD68, CTSS, PTPRC, MALAT1, RPS27, RPL13, TCF7, LEF1, SELL, CCL5, IL32';
+function dnaSeq(n){ let s = '', x = 12345; for (let i = 0; i < n; i++){ x = (Math.imul(x, 1103515245) + 12345) >>> 0; s += NT[(x >>> 16) & 3]; } return s; }
+const PRESETS = {
+  genes: 'MT-CO1 HLA-DRB1 CD14 MS4A1 NKG7',
+  english: 'Cells that express CD79A and MS4A1 are B cells.',
+  strawberry: 'How many r letters are in strawberry?',
+  markers: GENES50,
+  fasta: '>PBMC_demo synthetic 1 kb\n' + dnaSeq(1000).match(/.{1,60}/g).join('\n')
+};
+const tokIn = $('#tokIn'), tokOut = $('#tokOut'), tokIds = $('#tokIds');
+const tid = t => fnv(t) % 100000;
+function tokRender(){
+  const text = tokIn.value, toks = tokenize(text), ids = tokIds.checked;
+  tokOut.classList.toggle('ids', ids);
+  const frag = document.createDocumentFragment();
+  toks.forEach((t, i) => {
+    const s = document.createElement('span');
+    if (/^\n+$/.test(t)){ s.className = 'tk nl'; s.textContent = ids ? String(tid(t)) : '↵'; frag.appendChild(s); frag.appendChild(document.createTextNode('\n'.repeat(t.length))); return; }
+    s.className = 'tk tk' + (i % 6 + 1); s.textContent = ids ? String(tid(t)) : t; s.title = `"${t}" → ${tid(t)}`;
+    frag.appendChild(s);
+  });
+  tokOut.replaceChildren(frag);
+  $('#sChars').textContent = text.length.toLocaleString();
+  $('#sToks').textContent = toks.length.toLocaleString();
+  $('#sRatio').textContent = toks.length ? (text.length / toks.length).toFixed(1) : '0';
+}
+function setPreset(k){
+  tokIn.value = PRESETS[k];
+  $$('#presets .chipbtn').forEach(b => b.setAttribute('aria-pressed', b.dataset.p === k ? 'true' : 'false'));
+  tokRender();
+}
+$$('#presets .chipbtn').forEach(b => b.addEventListener('click', () => setPreset(b.dataset.p)));
+tokIn.addEventListener('input', () => { $$('#presets .chipbtn').forEach(b => b.setAttribute('aria-pressed', 'false')); tokRender(); });
+tokIds.addEventListener('change', tokRender);
+setPreset('genes');
+
+/* context window */
+const CTX = [
+  { r: 'system', t: 'You are a concise bioinformatics assistant.', n: 40 },
+  { r: 'user', t: "Hi! I'm Ana. I'm analysing the PBMC 3k dataset with scanpy.", n: 22 },
+  { r: 'assistant', t: 'Nice to meet you, Ana. PBMC 3k has about 2,700 cells from one healthy donor. Shall we start with quality control?', n: 64 },
+  { r: 'user', t: 'What QC thresholds should I start with?', n: 12 },
+  { r: 'assistant', t: 'A common start: keep cells with 200 to 2,500 detected genes and under 5% mitochondrial counts, then check the violin plots…', n: 128 },
+  { r: 'user', t: 'I get 8 clusters with Leiden at resolution 1.0. Is that expected?', n: 20 },
+  { r: 'assistant', t: 'Roughly, yes. This dataset usually separates into T-cell subsets, B cells, NK cells, two monocyte types, dendritic cells and megakaryocytes…', n: 112 },
+  { r: 'user', t: 'Here is my marker table: [top 25 genes × 8 clusters, pasted as text]', n: 310 },
+  { r: 'assistant', t: 'Cluster 0 looks like CD4+ T cells (IL7R), cluster 1 like CD14+ monocytes (CD14, LYZ), cluster 2 like B cells (MS4A1)…', n: 146 },
+  { r: 'user', t: "Thanks! By the way, what's my name?", n: 12 }
+];
+const REPLY_OK = { r: 'assistant', t: 'Your name is Ana. You told me at the start.', n: 14 };
+const REPLY_LOST = { r: 'assistant', t: "I don't know your name. It hasn't come up in this conversation.", n: 16 };
+let ctxL = 1024;
+const ctxTurn = $('#ctxTurn');
+function windowFor(k, L){
+  const last = 2 * k - 1, inc = new Set([0]); let budget = L - CTX[0].n;
+  for (let i = last; i >= 1; i--){ if (CTX[i].n <= budget){ inc.add(i); budget -= CTX[i].n; } else break; }
+  return inc;
+}
+const sumInc = inc => [...inc].reduce((a, i) => a + CTX[i].n, 0);
+function ctxRender(){
+  const k = +ctxTurn.value; $('#ctxTurnVal').textContent = `${k} of 5`;
+  const inc = windowFor(k, ctxL), used = sumInc(inc), last = 2 * k - 1;
+  const gauge = $('#gauge'); gauge.innerHTML = '';
+  for (let i = 0; i <= last; i++) if (inc.has(i)){ const seg = document.createElement('i'); seg.className = 'r-' + CTX[i].r; seg.style.width = (CTX[i].n / ctxL * 100) + '%'; seg.title = `${CTX[i].r}: ${CTX[i].n} tokens`; gauge.appendChild(seg); }
+  $('#gaugeTxt').textContent = `Request ${k}: ${used.toLocaleString()} of ${ctxL.toLocaleString()} tokens used`;
+  const reply = k < 5 ? CTX[2 * k] : (inc.has(1) ? REPLY_OK : REPLY_LOST);
+  const dropped = last + 1 - inc.size;
+  $('#ctxStatus').textContent = dropped
+    ? `${dropped} of the oldest message${dropped === 1 ? '' : 's'} no longer fit, so the model never sees ${dropped === 1 ? 'it' : 'them'} in this request.`
+    : 'Everything fits. The model sees the whole conversation.';
+  const ol = $('#msgs'); ol.innerHTML = '';
+  for (let i = 0; i <= last; i++){
+    const m = CTX[i], li = document.createElement('li'); li.className = 'msg' + (inc.has(i) ? '' : ' dropped');
+    li.innerHTML = `<span class="role ${m.r}">${m.r}</span><span><span class="txt">${esc(m.t)}</span>${inc.has(i) ? '' : '<span class="tag">dropped</span>'}</span><span class="n">${m.n} tok</span>`;
+    ol.appendChild(li);
+  }
+  const rl = document.createElement('li'); rl.className = 'msg reply';
+  rl.innerHTML = `<span class="role assistant">reply</span><span class="txt">${esc(reply.t)}</span><span class="n">${reply.n} tok</span>`;
+  ol.appendChild(rl);
+  const chart = $('#reqChart'), xs = $('#reqX'); chart.innerHTML = ''; xs.innerHTML = '';
+  const SCALE = 1000, PX = 118; let total = 0;
+  for (let j = 1; j <= 5; j++){
+    const v = j <= k ? sumInc(windowFor(j, ctxL)) : 0; total += v;
+    const col = document.createElement('div'); col.className = 'col';
+    col.innerHTML = j <= k ? `<span>${v}</span><span class="b" style="height:${Math.min(v, SCALE) / SCALE * PX}px"></span>` : '<span class="b" style="height:0"></span>';
+    chart.appendChild(col);
+    const x = document.createElement('span'); x.textContent = 'req ' + j; xs.appendChild(x);
+  }
+  if (ctxL <= SCALE){ const line = document.createElement('div'); line.className = 'limit'; line.style.bottom = (ctxL / SCALE * PX) + 'px'; line.innerHTML = `<span>limit ${ctxL}</span>`; chart.appendChild(line); }
+  $('#reqNote').textContent = `Tokens sent across ${k} request${k === 1 ? '' : 's'}: ${total.toLocaleString()}. Because the transcript is resent every turn, the total grows much faster than the conversation.`;
+}
+$$('#ctxLimit button').forEach(b => b.addEventListener('click', () => {
+  ctxL = +b.dataset.l; $$('#ctxLimit button').forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false')); ctxRender();
+}));
+ctxTurn.addEventListener('input', ctxRender);
+ctxRender();
+
+/* thinking */
+const FAST = 'NK cells. GZMB and NKG7 are classic NK-cell markers.';
+const TRACE = 'The markers are CD3E, CD8A, GZMB and NKG7, and CD4 is absent. CD3E belongs to the T-cell receptor complex, so these are T cells; NK cells normally lack CD3E. CD8A without CD4 points to CD8+ T cells. GZMB and NKG7 are cytotoxic genes found in both NK cells and effector CD8+ T cells, so they cannot separate the two. CD3E decides it.';
+const THINK_ANS = 'Cytotoxic CD8+ T cells. GZMB and NKG7 alone suggest NK cells, but CD3E rules that out.';
+const estTok = s => Math.round(s.length / 4);
+const meterTxt = n => `${n} tokens generated · about ${(n / 25).toFixed(1)} s at 25 tokens/s`;
+function thStatic(){
+  $('#fastAns').textContent = FAST; $('#fastM').textContent = meterTxt(estTok(FAST));
+  $('#thinkTrace').textContent = TRACE; $('#thinkAns').textContent = THINK_ANS; $('#thinkM').textContent = meterTxt(estTok(TRACE) + estTok(THINK_ANS));
+  $('#fastV').hidden = false; $('#thinkV').hidden = false;
+}
+let thRun = 0;
+async function streamWords(el, text, run, base, meter){
+  const w = text.split(' '); el.textContent = '';
+  for (let i = 0; i < w.length; i++){
+    if (run !== thRun) return false;
+    el.textContent += (i ? ' ' : '') + w[i];
+    meter.textContent = meterTxt(base + estTok(el.textContent));
+    await sleep(70);
+  }
+  return true;
+}
+$('#thinkRun').addEventListener('click', async () => {
+  if (reduce){ thStatic(); return; }
+  const run = ++thRun;
+  ['#fastAns', '#thinkTrace', '#thinkAns'].forEach(s => { $(s).textContent = ''; });
+  $('#fastV').hidden = true; $('#thinkV').hidden = true;
+  $('#fastM').textContent = meterTxt(0); $('#thinkM').textContent = meterTxt(0);
+  const fast = (async () => { if (await streamWords($('#fastAns'), FAST, run, 0, $('#fastM'))) $('#fastV').hidden = false; })();
+  const slow = (async () => {
+    if (!await streamWords($('#thinkTrace'), TRACE, run, 0, $('#thinkM'))) return;
+    if (await streamWords($('#thinkAns'), THINK_ANS, run, estTok(TRACE), $('#thinkM'))) $('#thinkV').hidden = false;
+  })();
+  await Promise.all([fast, slow]);
+});
+thStatic();
+
+/* api wire */
+$('#wireGo').addEventListener('click', () => {
+  if (reduce) return;
+  const links = $$('#wire .link');
+  const seq = [[links[0], 'req', 1, 0], [links[1], 'req', 1, 750], [links[1], 'res', -1, 1900], [links[0], 'res', -1, 2650]];
+  seq.forEach(([lk, kind, dir, delay]) => {
+    const p = lk.querySelector('.packet.' + kind), horiz = lk.offsetWidth > lk.offsetHeight;
+    const len = (horiz ? lk.offsetWidth : lk.offsetHeight) - 12;
+    const tf = v => horiz ? `translate(${v}px,0)` : `translate(0,${v}px)`;
+    const from = dir > 0 ? 0 : len, to = dir > 0 ? len : 0;
+    p.animate([{ transform: tf(from), opacity: 1 }, { transform: tf(to), opacity: 1 }], { duration: 700, delay, easing: 'ease-in-out' });
+  });
+});
+
+/* copy buttons */
+$$('.copy').forEach(btn => btn.addEventListener('click', () => {
+  const pre = btn.parentElement.querySelector('pre');
+  const done = () => { btn.textContent = 'Copied'; setTimeout(() => { btn.textContent = 'Copy'; }, 1500); };
+  const fallback = () => { const r = document.createRange(); r.selectNodeContents(pre); const s = getSelection(); s.removeAllRanges(); s.addRange(r); btn.textContent = 'Selected'; setTimeout(() => { btn.textContent = 'Copy'; }, 1500); };
+  try { navigator.clipboard.writeText(pre.innerText).then(done, fallback); } catch (e) { fallback(); }
+}));
+})();
+</script>
+
+</body>
+</html>

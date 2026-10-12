@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="A five-lesson course on coding agents for computational biology, from how LLMs work to agents that analyse single-cell data.">
+<meta name="theme-color" content="#0a0c11">
+<style>[hidden]{display:none!important} body{margin:0} img{max-width:100%}</style>
+<title>Coding Agents for Computational Biology</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Palette: fluorescence microscopy. A dark field like an unlit slide; DAPI blue carries structure,
+   GFP green labels sections, mCherry pink marks what the model generates. One deliberate dark theme. */
+:root{
+  color-scheme:dark;
+  --bg:#0a0c11; --surface:#11141b; --sunk:#181c26; --ink:#e9ecf3; --muted:#8e97ab; --line:#242a38;
+  --acc:#8b9bff; --on-acc:#0a0c11; --acc-soft:rgba(139,155,255,.15);
+  --pop:#ff6f91; --pop-soft:rgba(255,111,145,.15);
+  --gfp:#4fe0a5; --gfp-soft:rgba(79,224,165,.12);
+  --t1:#262b63; --t2:#4d2036; --t3:#183f34; --t4:#4b3a19; --t5:#17314c; --t6:#372752;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181;
+  --cold:#3987e5; --warm:#a87ad0; --hot:#ef6b6b;
+  --display:"Bricolage Grotesque","Helvetica Neue",Arial,sans-serif;
+  --body:"Instrument Sans","Helvetica Neue",Arial,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:18px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:920px;margin:0 auto;padding-inline:20px}
+h1,h2,h3{font-family:var(--display);line-height:1.12;text-wrap:balance;margin:0}
+p{margin:0}
+a{color:var(--acc)}
+:focus-visible{outline:2px solid var(--pop);outline-offset:3px}
+code{font-family:var(--mono);font-size:.84em;background:var(--sunk);padding:.08em .35em;border-radius:5px}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--pop)}
+
+/* hero */
+.hero{padding-block:64px 40px;display:flex;flex-direction:column;gap:18px}
+.hero h1{font-size:clamp(2.3rem,6vw,4rem);font-weight:800;letter-spacing:-.03em;max-width:15ch}
+.lede{font-size:1.2rem;max-width:60ch}
+.facts{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}
+.facts span{font-family:var(--mono);font-size:13px;padding:6px 12px;border:1px solid var(--line);border-radius:999px;background:var(--surface)}
+.facts b{font-weight:600}
+
+/* token strip: the course title read as tokens, a nod to lesson 1 */
+.strip{display:flex;flex-wrap:wrap;gap:4px;margin-top:10px;font-family:var(--mono);font-size:13px}
+.strip span{padding:3px 6px;border-radius:5px;background:var(--acc-soft);animation:tok .4s ease-out backwards}
+.strip span:nth-child(even){background:var(--pop-soft)}
+@keyframes tok{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+section{padding-block:44px;border-top:1px solid var(--line)}
+.sec-head{display:flex;flex-direction:column;gap:8px;margin-bottom:26px;max-width:62ch}
+h2{font-size:clamp(1.5rem,3vw,2rem);font-weight:700;letter-spacing:-.015em}
+
+/* lesson timeline */
+.lessons{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;position:relative}
+.lessons::before{content:"";position:absolute;left:27px;top:28px;bottom:28px;width:2px;background:var(--line)}
+.lesson{display:grid;grid-template-columns:56px minmax(0,1fr);gap:20px;padding-block:14px;position:relative}
+.num{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;font:800 1.4rem/1 var(--display);background:var(--bg);border:2px solid var(--line);color:var(--muted);position:relative;z-index:1}
+.lesson.ready .num{background:var(--acc);border-color:var(--acc);color:var(--on-acc)}
+.card{display:flex;flex-direction:column;gap:10px;padding:18px 20px;border:1px solid var(--line);border-radius:14px;background:var(--surface);min-width:0;text-decoration:none;color:inherit;transition:border-color .2s,transform .2s,box-shadow .2s}
+a.card:hover{border-color:var(--acc);transform:translateY(-2px);box-shadow:0 8px 24px rgba(40,40,110,.12)}
+.lesson.soon .card{background:transparent;border-style:dashed}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap}
+.card h3{font-size:1.3rem;font-weight:700}
+.pill{font:600 11.5px/1 var(--mono);padding:5px 9px;border-radius:999px;white-space:nowrap;text-transform:uppercase;letter-spacing:.05em}
+.pill.live{background:var(--pop-soft);color:var(--pop)}
+.pill.later{background:var(--sunk);color:var(--muted)}
+.card p{font-size:16.5px}
+.build{font-size:15px;color:var(--muted)}
+.build b{font-family:var(--display);color:var(--ink);font-weight:600}
+.topics{display:flex;flex-wrap:wrap;gap:6px}
+.topics span{font:12.5px/1.2 var(--mono);padding:4px 8px;border-radius:6px;background:var(--sunk)}
+.open{font:600 15px/1 var(--display);color:var(--acc);display:inline-flex;align-items:center;gap:6px}
+a.card:hover .open span{transform:translateX(3px)}
+.open span{transition:transform .2s}
+
+/* threads */
+.threads{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px 28px}
+@media (max-width:760px){.threads{grid-template-columns:minmax(0,1fr)}}
+.threads div{border-top:2px solid var(--ink);padding-top:12px;display:flex;flex-direction:column;gap:6px;font-size:16.5px}
+.threads b{font-family:var(--display);font-size:1.05rem}
+.threads span{color:var(--muted)}
+
+/* setup */
+.setup{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 28px}
+@media (max-width:680px){.setup{grid-template-columns:minmax(0,1fr)}}
+.setup li{display:grid;grid-template-columns:22px minmax(0,1fr);gap:10px;align-items:baseline;font-size:16.5px;padding-block:6px;border-bottom:1px solid var(--line)}
+.setup li::before{content:"";width:12px;height:12px;border:2px solid var(--acc);border-radius:3px;transform:translateY(1px)}
+.setup .when{font-family:var(--mono);font-size:12px;color:var(--muted)}
+
+footer{border-top:1px solid var(--line);padding-block:30px 48px;font-family:var(--mono);font-size:13px;color:var(--muted)}
+@media (max-width:560px){
+  .lessons::before{left:19px}
+  .lesson{grid-template-columns:40px minmax(0,1fr);gap:12px}
+  .num{width:40px;height:40px;font-size:1.05rem}
+}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}.strip span{opacity:1}}
+
+/* dark identity layer */
+body{background-color:var(--bg);background-image:radial-gradient(1100px 520px at 12% -8%,rgba(139,155,255,.14),transparent 62%),radial-gradient(800px 460px at 96% -4%,rgba(79,224,165,.08),transparent 60%);background-repeat:no-repeat;font-size:17px;line-height:1.65}
+h1{font-weight:800;letter-spacing:-.035em}
+h2{letter-spacing:-.02em}
+.eyebrow{color:var(--gfp)}
+.eyebrow::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--gfp);box-shadow:0 0 10px var(--gfp);margin-right:9px;vertical-align:2px}
+.facts span{background:rgba(255,255,255,.03)}
+.card{background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,0) 120px),var(--surface);box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+a.card:hover{border-color:var(--acc);box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 0 0 1px var(--acc),0 18px 40px -18px rgba(139,155,255,.45)}
+.lesson.ready .num{box-shadow:0 0 24px -2px var(--acc)}
+.lessons::before{background:linear-gradient(180deg,var(--acc),var(--line) 22%)}
+.pill.live{background:var(--gfp-soft);color:var(--gfp)}
+.threads div{border-top-color:var(--acc)}
+.setup li::before{border-color:var(--gfp)}
+.strip span{background:var(--acc-soft)}
+.strip span:nth-child(even){background:var(--pop-soft)}
+</style>
+</head>
+<body>
+
+
+<main class="wrap">
+  <header class="hero">
+    <span class="eyebrow">A five-lesson course</span>
+    <h1>Coding agents for computational biology</h1>
+    <p class="lede">Start with how a language model predicts the next token. Finish with an agent that analyses single-cell data and builds a tested web tool. Each lesson reuses what the previous one built, and the same PBMC 3k dataset runs through all five.</p>
+    <div class="strip" aria-hidden="true">
+      <span style="animation-delay:.05s">Coding</span><span style="animation-delay:.12s">␣agents</span><span style="animation-delay:.19s">␣for</span><span style="animation-delay:.26s">␣comput</span><span style="animation-delay:.33s">ational</span><span style="animation-delay:.40s">␣bi</span><span style="animation-delay:.47s">ology</span>
+    </div>
+    <div class="facts">
+      <span><b>5</b> lessons</span>
+      <span><b>90 min</b> each</span>
+      <span>Local models in <b>LM Studio</b></span>
+      <span>Agents with <b>Claude Code</b></span>
+      <span>Data: <b>PBMC 3k</b>, <b>squidpy</b></span>
+    </div>
+  </header>
+
+  <section aria-labelledby="lessons-h">
+    <div class="sec-head">
+      <span class="eyebrow">Lessons</span>
+      <h2 id="lessons-h">Take them in order</h2>
+      <p>Each lesson hands its code to the next, so later lessons assume you finished the earlier ones.</p>
+    </div>
+
+    <!-- To publish a lesson: change its <li class="lesson soon"> to "lesson ready",
+         turn its <div class="card"> into <a class="card" href="lessonN/index.html">,
+         and swap the "Coming soon" pill for the "Open" pill and link line used in lesson 1. -->
+    <ol class="lessons">
+      <li class="lesson ready">
+        <span class="num" aria-hidden="true">1</span>
+        <a class="card" href="lesson1/index.html">
+          <div class="card-top"><h3>How LLMs work, and talking to one</h3><span class="pill live">Open</span></div>
+          <p>Next-token prediction, temperature, tokenization, the context window and thinking mode, each with an interactive demo. Then you call a local model from Python.</p>
+          <div class="topics"><span>softmax</span><span>temperature</span><span>tokens</span><span>context</span><span>LM Studio API</span></div>
+          <p class="build"><b>You build:</b> a Python chat client for a local model.</p>
+          <span class="open">Open lesson 1 <span aria-hidden="true">→</span></span>
+        </a>
+      </li>
+      <li class="lesson soon">
+        <span class="num" aria-hidden="true">2</span>
+        <div class="card">
+          <div class="card-top"><h3>Structured outputs for biology</h3><span class="pill later">Coming soon</span></div>
+          <p>Constrain the model with a JSON schema, validate what comes back, and score it against known answers. Ends with tool calling.</p>
+          <div class="topics"><span>JSON schema</span><span>Pydantic</span><span>cell type annotation</span><span>metadata cleanup</span><span>tool calls</span></div>
+          <p class="build"><b>You build:</b> a cluster annotator scored against PBMC 3k labels.</p>
+        </div>
+      </li>
+      <li class="lesson soon">
+        <span class="num" aria-hidden="true">3</span>
+        <div class="card">
+          <div class="card-top"><h3>From LLM to coding agent</h3><span class="pill later">Coming soon</span></div>
+          <p>Write an agent loop in about 100 lines of Python, run its shell inside a Docker container, share a tool over MCP, then compare it with Claude Code.</p>
+          <div class="topics"><span>agent loop</span><span>sandboxes</span><span>MCP</span><span>Claude Code</span></div>
+          <p class="build"><b>You build:</b> your own agent, a sandbox for it and an MCP server.</p>
+        </div>
+      </li>
+      <li class="lesson soon">
+        <span class="num" aria-hidden="true">4</span>
+        <div class="card">
+          <div class="card-top"><h3>Agents for real analysis</h3><span class="pill later">Coming soon</span></div>
+          <p>Use Claude Code on a full scRNA-seq analysis and a spatial analysis, with seven principles that keep the work reviewable.</p>
+          <div class="topics"><span>scanpy</span><span>squidpy</span><span>plan mode</span><span>decision log</span></div>
+          <p class="build"><b>You build:</b> PBMC 3k and spatial analyses as rerunnable scripts.</p>
+        </div>
+      </li>
+      <li class="lesson soon">
+        <span class="num" aria-hidden="true">5</span>
+        <div class="card">
+          <div class="card-top"><h3>Reliable agent workflows, plus a build</h3><span class="pill later">Coming soon</span></div>
+          <p>Verification, reproducibility, security and privacy, then one live slice of a single-cell viewer built test-first with an agent.</p>
+          <div class="topics"><span>tests first</span><span>pinned environments</span><span>permissions</span><span>patient data</span></div>
+          <p class="build"><b>You build:</b> one feature of a single-cell web viewer, plus a take-home project.</p>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <section aria-labelledby="threads-h">
+    <div class="sec-head">
+      <span class="eyebrow">Running through every lesson</span>
+      <h2 id="threads-h">Three ideas to keep in mind</h2>
+    </div>
+    <div class="threads">
+      <div><b>One dataset</b><span>PBMC 3k marker genes in lesson 2, its full analysis in lesson 4, a viewer for it in lesson 5.</span></div>
+      <div><b>Check everything</b><span>Score the output, test the agent, compare with known biology, then make the checks automatic.</span></div>
+      <div><b>Same loop, different model</b><span>The loop you write in lesson 3 is the loop inside Claude Code. Swapping models shows how much the model does.</span></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="setup-h">
+    <div class="sec-head">
+      <span class="eyebrow">Before lesson 1</span>
+      <h2 id="setup-h">Install these first</h2>
+      <p>Setup takes longer than you expect. Do it before the first lesson.</p>
+    </div>
+    <ul class="setup">
+      <li><span>LM Studio 0.4.1 or later, with one small model downloaded <span class="when">· lesson 1</span></span></li>
+      <li><span>Python 3.11 or later with <code>uv</code> <span class="when">· lesson 1</span></span></li>
+      <li><span>A tool-capable model of 7B parameters or more <span class="when">· lessons 2–3</span></span></li>
+      <li><span>Docker, checked with <code>docker run hello-world</code> <span class="when">· lesson 3</span></span></li>
+      <li><span>git and a GitHub account <span class="when">· lessons 3–5</span></span></li>
+      <li><span>Node.js for the web viewer <span class="when">· lesson 5</span></span></li>
+    </ul>
+  </section>
+</main>
+
+<footer><div class="wrap">Coding agents for computational biology · Course materials, 2026</div></footer>
+
+</body>
+</html>
