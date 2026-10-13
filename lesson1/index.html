@@ -509,7 +509,7 @@ footer{color:var(--muted)}
 <section class="part" id="problem">
   <div class="wrap">
     <div class="part-head prose">
-      <span class="eyebrow">0–10 min · The problem</span>
+      <span class="eyebrow">The problem</span>
       <h2>What comes next?</h2>
       <p>Forget neural networks for a moment and look at the task itself. You see the start of a text and have to guess how it continues. That is the whole problem a language model solves, one piece at a time.</p>
       <p>Try it. Guess the missing word in each line before you reveal what a model would say.</p>
@@ -528,7 +528,7 @@ footer{color:var(--muted)}
 <section class="part" id="approaches">
   <div class="wrap">
     <div class="part-head prose">
-      <span class="eyebrow">10–20 min · Two approaches</span>
+      <span class="eyebrow">Two approaches</span>
       <h2>How could a machine make the guess?</h2>
       <p>There are two ideas. Only the second one works, and watching the first one fail is the quickest way to see why.</p>
     </div>
@@ -640,7 +640,7 @@ footer{color:var(--muted)}
 <section class="part" id="tokens">
   <div class="wrap">
     <div class="part-head prose">
-      <span class="eyebrow">20–30 min · Tokenization</span>
+      <span class="eyebrow">Tokenization</span>
       <h2>Turning text into numbers</h2>
       <p>A tokenizer cuts text into pieces from a fixed vocabulary and replaces each piece with an integer ID. These pieces are called tokens, and they are what the model actually predicts: not words, but tokens. Common English words are one token each. Gene symbols and DNA are rare in training text, so they shatter into many small pieces.</p>
     </div>
@@ -701,7 +701,7 @@ footer{color:var(--muted)}
 <section class="part" id="learn">
   <div class="wrap">
     <div class="part-head prose">
-      <span class="eyebrow">30–40 min · Learning</span>
+      <span class="eyebrow">Learning</span>
       <h2>How the model learns</h2>
       <p>Training is the guessing game from the start of this lesson, played billions of times. Take real text, hide the next token, let the network guess, compare the guess with the truth, and nudge the network's weights so the true token becomes a little more likely. Then repeat over trillions of tokens.</p>
       <p>Nothing else is taught directly. Grammar, facts and marker genes are learned only because they help with the guessing.</p>
@@ -802,7 +802,7 @@ Q: Which cell type expresses</span></pre></div>
 <section class="part" id="temperature">
   <div class="wrap">
     <div class="part-head prose">
-      <span class="eyebrow">40–52 min · Sampling</span>
+      <span class="eyebrow">Sampling</span>
       <h2>From probabilities to choices</h2>
       <p>Give a model the top markers of a PBMC 3k cluster and ask what the cells are. Ask again with the same prompt, and the wording changes. Sometimes the answer changes too. The model is not broken: it samples.</p>
     </div>
@@ -927,7 +927,7 @@ Q: Which cell type expresses</span></pre></div>
 <section class="part" id="context">
   <div class="wrap">
     <div class="part-head prose">
-      <span class="eyebrow">52–60 min · Context</span>
+      <span class="eyebrow">Context</span>
       <h2>The context window is the only memory</h2>
       <p>The model keeps nothing between requests. A chat app resends the whole transcript every turn: system prompt, every question, every answer. The context window is the maximum number of tokens one request can hold. When the transcript outgrows it, the oldest messages are dropped and the model never sees them.</p>
     </div>
@@ -978,7 +978,7 @@ What QC thresholds should I start with?&lt;|im_end|&gt;
 <section class="part" id="thinking">
   <div class="wrap">
     <div class="part-head prose">
-      <span class="eyebrow">60–65 min · Thinking mode</span>
+      <span class="eyebrow">Thinking mode</span>
       <h2>Thinking is more tokens before the answer</h2>
       <p>A reasoning model first writes intermediate text, then the answer. Nothing new happens inside: it is the same next-token loop. The extra tokens give later tokens more to attend to, which helps on problems with several steps. You pay in time and context.</p>
     </div>
@@ -1012,7 +1012,7 @@ What QC thresholds should I start with?&lt;|im_end|&gt;
 <section class="part" id="api">
   <div class="wrap">
     <div class="part-head prose">
-      <span class="eyebrow">65–87 min · Hands-on</span>
+      <span class="eyebrow">Hands-on</span>
       <h2>Talk to a local model from Python</h2>
       <p>LM Studio runs a model on your laptop and serves it over HTTP with the same request format as OpenAI's API. Your Python code sends a list of messages and gets one new message back. No API key and no data leaves the machine.</p>
     </div>
@@ -1132,7 +1132,7 @@ print("fasta:", count_tokens(open("seq.fa").read()) - overhead)</pre></div>
 <section class="part" id="bridge">
   <div class="wrap">
     <div class="part-head prose">
-      <span class="eyebrow">87–90 min · Bridge</span>
+      <span class="eyebrow">Bridge</span>
       <h2>Free text does not fit a pipeline</h2>
       <p>The answers we collected today are sentences. A scanpy pipeline needs one row per cluster with the same columns every time. Next lesson we make the model fill in exactly this table, check every field, and score it against known labels.</p>
     </div>
