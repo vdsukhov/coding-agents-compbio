@@ -291,6 +291,68 @@ pre{margin:0 16px 16px; background:#0d1016; border:1px solid var(--rule); font-s
 .next-step .btn{text-decoration:none}
 .foot{font-family:var(--f-body); font-size:.9rem}
 footer{border-top:1px solid var(--rule); margin-top:48px; padding-block:30px 48px; font-family:var(--f-mono); font-size:13px; color:var(--muted)}
+/* ---- data-shape schematics: what the matrix looks like after each step ---- */
+.step-intro{display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:22px 44px; align-items:start}
+.shape{margin:0; display:flex; flex-direction:column; gap:10px; padding:2px 0 2px 22px; border-left:1px solid var(--rule)}
+.shape-cap{font:600 11px/1.3 var(--f-mono); letter-spacing:.08em; text-transform:uppercase; color:var(--muted)}
+.shape figcaption{font-size:.86rem; line-height:1.5; color:var(--ink-2)}
+.shape figcaption b{color:var(--ink); font-weight:600}
+.mx{display:block; width:100%; height:auto; overflow:visible}
+.mx text{font-family:var(--f-mono); font-size:9.5px; fill:var(--muted)}
+.mx .lbl{fill:var(--muted)}
+.mx .dim{fill:var(--ink); font-weight:600}
+.mx .name{fill:var(--ink); font-family:var(--f-display); font-weight:700; font-size:11px}
+.mx .op{fill:var(--ink-2); font-size:16px}
+.mx .gene{fill:var(--ink-2); font-weight:600}
+.mx .bc{font-size:9px}
+.mx .val{fill:var(--muted)}
+.mx .val-on{fill:var(--ink); font-weight:600}
+.mx .x{fill:var(--pop); font-size:10px}
+.mx .lab{fill:var(--bg); font-size:7px; font-weight:600; text-anchor:middle}
+.mx .bg{fill:rgba(255,255,255,.02)}
+.mx .gl{stroke:var(--rule); stroke-width:.6; fill:none}
+.mx .frame{fill:none; stroke:var(--ink-2); stroke-width:1}
+.mx .on{fill:var(--accent)}
+.mx .new{fill:var(--gfp)}
+.mx .cell{fill:rgba(255,255,255,.02); stroke:var(--rule)}
+.mx .cell-on{fill:var(--accent-soft); stroke:var(--accent)}
+.mx .drop-row{fill:var(--pop); opacity:.32}
+.mx .keep-col{fill:var(--accent); opacity:.16}
+.mx .load-row{fill:var(--accent); opacity:.1}
+.mx .tot{fill:var(--ink-2); opacity:.7}
+.mx .plotbox{fill:rgba(255,255,255,.02); stroke:var(--rule)}
+.mx .edge{stroke:var(--muted); stroke-width:.8; fill:none; opacity:.7}
+.mx .node{fill:var(--ink-2)}
+.mx .c0{fill:var(--t0)} .mx .c2{fill:var(--t2)} .mx .c3{fill:var(--t3)}
+.mx .blk0{fill:var(--t0); opacity:.14} .mx .blk2{fill:var(--t2); opacity:.14} .mx .blk3{fill:var(--t3); opacity:.14}
+@media (max-width:900px){
+  .step-intro{grid-template-columns:minmax(0,1fr)}
+  .shape{border-left:0; padding:14px 0 0; border-top:1px solid var(--rule); max-width:380px}
+}
+.shape-strip{list-style:none; margin:0 0 20px; padding:0; display:flex; flex-wrap:wrap; gap:8px 6px; align-items:center}
+.shape-strip li{display:inline-flex; align-items:center; gap:6px}
+.shape-strip li+li::before{content:"→"; color:var(--muted); font-family:var(--f-mono); font-size:12px}
+.shape-strip a{display:flex; flex-direction:column; gap:1px; padding:6px 10px; border:1px solid var(--rule); border-radius:10px; background:rgba(255,255,255,.02); text-decoration:none; color:var(--ink)}
+.shape-strip a:hover{border-color:var(--accent)}
+.shape-strip span{font:11px/1.3 var(--f-mono); color:var(--muted)}
+.shape-strip b{font:600 12.5px/1.3 var(--f-mono); font-variant-numeric:tabular-nums}
+/* ---- code blocks: toolbar, copy buttons, notebook cells ---- */
+.code-bar{display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:8px 12px; padding:0 16px}
+.code-bar .code-tabs{padding:0}
+.code-actions{display:flex; flex-wrap:wrap; gap:6px; padding-bottom:7px}
+.copy{font:600 12px/1 var(--f-display); padding:6px 11px; border-radius:999px; border:1px solid var(--rule); background:rgba(255,255,255,.03); color:var(--ink-2); cursor:pointer; transition:border-color .2s,color .2s}
+.copy:hover{border-color:var(--accent); color:var(--ink)}
+.copy.done{border-color:var(--gfp); color:var(--gfp)}
+pre .s{color:#8fdcb9}
+pre .k{color:#aab5ff}
+.nb-cells{display:flex; flex-direction:column; gap:12px; margin:0 16px 16px; padding:14px; background:#0d1016; border:1px solid var(--rule); border-radius:0 10px 10px 10px}
+.nb-cell{border:1px solid var(--rule); border-radius:10px; background:var(--panel); min-width:0; transition:border-color .2s}
+.nb-cell:hover{border-color:#343c50}
+.nb-head{display:flex; align-items:center; gap:10px; padding:7px 8px 7px 12px; border-bottom:1px solid var(--rule)}
+.nb-n{font:12px var(--f-mono); color:var(--accent); white-space:nowrap}
+.nb-title{flex:1; min-width:0; font:600 13.5px/1.3 var(--f-display); color:var(--ink)}
+.nb-cell pre{margin:0; border:0; border-radius:0 0 10px 10px; background:transparent; padding:12px 14px}
+@media (max-width:620px){ .nb-cells{margin-inline:8px; padding:8px} .code-bar{padding:0 8px} }
 </style>
 </head>
 <body>
@@ -337,9 +399,14 @@ footer{border-top:1px solid var(--rule); margin-top:48px; padding-block:30px 48p
     <div class="drop-key" id="drop-key"></div>
     <p class="fig-cap">Real runs load few cells (λ near 0.1) so doublets stay rare. The price: most droplets hold only a bead, and their barcodes are filtered out later as empty.</p>
   </div>
-  <div class="prose">
-    <p>After sequencing, reads are grouped by barcode and UMI into a <strong>count matrix</strong>: cells × genes, each entry the number of distinct molecules. Only a small fraction of each cell's mRNA is captured, so most entries are zero. A zero means "not observed", not "not expressed".</p>
-    <div class="look"><b>Try it</b>Reorder the rows by similarity: cells with similar profiles line up and gene blocks appear.</div>
+  <div class="step-intro">
+    <div class="prose">
+      <p>After sequencing, reads are grouped by barcode and UMI into a <strong>count matrix</strong>: cells × genes, each entry the number of distinct molecules. Only a small fraction of each cell's mRNA is captured, so most entries are zero. A zero means "not observed", not "not expressed".</p>
+      <div class="look"><b>Try it</b>Reorder the rows by similarity: cells with similar profiles line up and gene blocks appear.</div>
+    </div>
+    <figure class="shape"><span class="shape-cap">The matrix at this step</span>
+      <svg class="mx" viewBox="0 0 280 152" role="img" aria-label="Schematic of the count matrix: rows are cell barcodes, columns are genes, entries are UMI counts, mostly zero"><text x="92" y="12" class="lbl">genes (columns) →</text><text x="112" y="30" text-anchor="middle" class="gene">CD3D</text><text x="152" y="30" text-anchor="middle" class="gene">LYZ</text><text x="192" y="30" text-anchor="middle" class="gene">MS4A1</text><text x="232" y="30" text-anchor="middle" class="gene">NKG7</text><text x="262" y="30" text-anchor="middle" class="gene">…</text><text x="84" y="55" text-anchor="end" class="bc">AAACATAC-1</text><rect x="94" y="42" width="36" height="20" class="cell-on"/><text x="112" y="56" text-anchor="middle" class="val-on">4</text><rect x="134" y="42" width="36" height="20" class="cell"/><text x="152" y="56" text-anchor="middle" class="val">0</text><rect x="174" y="42" width="36" height="20" class="cell"/><text x="192" y="56" text-anchor="middle" class="val">0</text><rect x="214" y="42" width="36" height="20" class="cell-on"/><text x="232" y="56" text-anchor="middle" class="val-on">1</text><text x="262" y="56" text-anchor="middle" class="val">…</text><text x="84" y="79" text-anchor="end" class="bc">AAACATTG-1</text><rect x="94" y="66" width="36" height="20" class="cell"/><text x="112" y="80" text-anchor="middle" class="val">0</text><rect x="134" y="66" width="36" height="20" class="cell-on"/><text x="152" y="80" text-anchor="middle" class="val-on">12</text><rect x="174" y="66" width="36" height="20" class="cell"/><text x="192" y="80" text-anchor="middle" class="val">0</text><rect x="214" y="66" width="36" height="20" class="cell"/><text x="232" y="80" text-anchor="middle" class="val">0</text><text x="262" y="80" text-anchor="middle" class="val">…</text><text x="84" y="103" text-anchor="end" class="bc">AAACCGTG-1</text><rect x="94" y="90" width="36" height="20" class="cell"/><text x="112" y="104" text-anchor="middle" class="val">0</text><rect x="134" y="90" width="36" height="20" class="cell"/><text x="152" y="104" text-anchor="middle" class="val">0</text><rect x="174" y="90" width="36" height="20" class="cell-on"/><text x="192" y="104" text-anchor="middle" class="val-on">3</text><rect x="214" y="90" width="36" height="20" class="cell"/><text x="232" y="104" text-anchor="middle" class="val">0</text><text x="262" y="104" text-anchor="middle" class="val">…</text><text x="84" y="126" text-anchor="end" class="val">⋮</text><text x="112" y="126" text-anchor="middle" class="val">⋮</text><text x="152" y="126" text-anchor="middle" class="val">⋮</text><text x="192" y="126" text-anchor="middle" class="val">⋮</text><text x="232" y="126" text-anchor="middle" class="val">⋮</text><text x="84" y="144" text-anchor="end" class="lbl">cells (rows) ↓</text><text x="92" y="144" class="dim">2,700 × 13,714</text></svg>
+      <figcaption>One row per cell barcode, one column per gene, each entry a UMI count. Most entries are 0. Scanpy stores it this way (<code>adata.X</code>); Seurat stores the same matrix transposed, genes × cells.</figcaption></figure>
   </div>
   <div class="fig fig-grid">
     <div>
@@ -367,15 +434,20 @@ pbmc &lt;- CreateSeuratObject(pbmc.data, project = "pbmc3k",
 <!-- 2 -->
 <section class="step" id="s2">
   <div class="step-head"><span class="step-no">02</span><span class="eyebrow">Quality control</span><h2>Remove broken droplets</h2></div>
-  <div class="prose">
-    <p>Three per-cell metrics catch most problems:</p>
-    <ul class="tight">
-      <li><strong>Genes detected</strong>: too few means an empty droplet or dead cell; too many suggests a <strong>doublet</strong> (two cells sharing one barcode, as in the step 01 animation).</li>
-      <li><strong>Total UMIs</strong>: tracks genes detected closely.</li>
-      <li><strong>Mitochondrial %</strong>: dying cells leak cytoplasmic mRNA but keep mitochondrial transcripts, so their mito share rises.</li>
-    </ul>
-    <p>The standard pbmc3k cut keeps 200–2,500 genes and &lt;5% mito.</p>
-    <div class="look"><b>Try it</b>Tighten the sliders. This copy of the data already passed the published cut (62 of 2,700 barcodes removed), so the defaults drop nothing.</div>
+  <div class="step-intro">
+    <div class="prose">
+      <p>Three per-cell metrics catch most problems:</p>
+      <ul class="tight">
+        <li><strong>Genes detected</strong>: too few means an empty droplet or dead cell; too many suggests a <strong>doublet</strong> (two cells sharing one barcode, as in the step 01 animation).</li>
+        <li><strong>Total UMIs</strong>: tracks genes detected closely.</li>
+        <li><strong>Mitochondrial %</strong>: dying cells leak cytoplasmic mRNA but keep mitochondrial transcripts, so their mito share rises.</li>
+      </ul>
+      <p>The standard pbmc3k cut keeps 200–2,500 genes and &lt;5% mito.</p>
+      <div class="look"><b>Try it</b>Tighten the sliders. This copy of the data already passed the published cut (62 of 2,700 barcodes removed), so the defaults drop nothing.</div>
+    </div>
+    <figure class="shape"><span class="shape-cap">The matrix at this step</span>
+      <svg class="mx" viewBox="0 0 280 132" role="img" aria-label="Quality control removes whole rows (cells) from the matrix; the genes stay"><text x="26" y="14" class="lbl">genes →</text><text x="14" y="67.5" text-anchor="middle" class="lbl" transform="rotate(-90 14 67.5)">cells</text><rect x="26" y="22" width="210" height="91" class="bg"/><path d="M33 22v91M40 22v91M47 22v91M54 22v91M61 22v91M68 22v91M75 22v91M82 22v91M89 22v91M96 22v91M103 22v91M110 22v91M117 22v91M124 22v91M131 22v91M138 22v91M145 22v91M152 22v91M159 22v91M166 22v91M173 22v91M180 22v91M187 22v91M194 22v91M201 22v91M208 22v91M215 22v91M222 22v91M229 22v91M26 29h210M26 36h210M26 43h210M26 50h210M26 57h210M26 64h210M26 71h210M26 78h210M26 85h210M26 92h210M26 99h210M26 106h210" class="gl"/><rect x="41" y="23" width="5" height="5" class="on"/><rect x="48" y="23" width="5" height="5" class="on"/><rect x="167" y="23" width="5" height="5" class="on"/><rect x="174" y="23" width="5" height="5" class="on"/><rect x="230" y="23" width="5" height="5" class="on"/><rect x="174" y="37" width="5" height="5" class="on"/><rect x="216" y="37" width="5" height="5" class="on"/><rect x="41" y="44" width="5" height="5" class="on"/><rect x="97" y="44" width="5" height="5" class="on"/><rect x="125" y="44" width="5" height="5" class="on"/><rect x="139" y="44" width="5" height="5" class="on"/><rect x="153" y="44" width="5" height="5" class="on"/><rect x="202" y="44" width="5" height="5" class="on"/><rect x="223" y="44" width="5" height="5" class="on"/><rect x="41" y="51" width="5" height="5" class="on"/><rect x="55" y="51" width="5" height="5" class="on"/><rect x="139" y="51" width="5" height="5" class="on"/><rect x="160" y="51" width="5" height="5" class="on"/><rect x="223" y="51" width="5" height="5" class="on"/><rect x="34" y="58" width="5" height="5" class="on"/><rect x="41" y="58" width="5" height="5" class="on"/><rect x="55" y="58" width="5" height="5" class="on"/><rect x="167" y="58" width="5" height="5" class="on"/><rect x="174" y="58" width="5" height="5" class="on"/><rect x="188" y="58" width="5" height="5" class="on"/><rect x="209" y="58" width="5" height="5" class="on"/><rect x="104" y="65" width="5" height="5" class="on"/><rect x="132" y="65" width="5" height="5" class="on"/><rect x="195" y="65" width="5" height="5" class="on"/><rect x="209" y="65" width="5" height="5" class="on"/><rect x="27" y="72" width="5" height="5" class="on"/><rect x="69" y="72" width="5" height="5" class="on"/><rect x="97" y="72" width="5" height="5" class="on"/><rect x="153" y="72" width="5" height="5" class="on"/><rect x="160" y="72" width="5" height="5" class="on"/><rect x="167" y="72" width="5" height="5" class="on"/><rect x="202" y="72" width="5" height="5" class="on"/><rect x="160" y="79" width="5" height="5" class="on"/><rect x="195" y="79" width="5" height="5" class="on"/><rect x="202" y="79" width="5" height="5" class="on"/><rect x="230" y="79" width="5" height="5" class="on"/><rect x="69" y="86" width="5" height="5" class="on"/><rect x="97" y="86" width="5" height="5" class="on"/><rect x="188" y="86" width="5" height="5" class="on"/><rect x="139" y="93" width="5" height="5" class="on"/><rect x="181" y="93" width="5" height="5" class="on"/><rect x="223" y="93" width="5" height="5" class="on"/><rect x="125" y="100" width="5" height="5" class="on"/><rect x="132" y="100" width="5" height="5" class="on"/><rect x="202" y="100" width="5" height="5" class="on"/><rect x="209" y="100" width="5" height="5" class="on"/><rect x="97" y="107" width="5" height="5" class="on"/><rect x="188" y="107" width="5" height="5" class="on"/><rect x="26" y="36" width="210" height="7" class="drop-row"/><rect x="26" y="71" width="210" height="7" class="drop-row"/><rect x="26" y="92" width="210" height="7" class="drop-row"/><rect x="26" y="22" width="210" height="91" class="frame"/><text x="246" y="42.5" text-anchor="middle" class="x">✕</text><text x="246" y="77.5" text-anchor="middle" class="x">✕</text><text x="246" y="98.5" text-anchor="middle" class="x">✕</text><text x="26" y="131" class="dim">2,700 → 2,638 cells</text></svg>
+      <figcaption>QC removes whole <b>rows</b>: barcodes with too few or too many genes, or too much mitochondrial RNA. Columns are untouched.</figcaption></figure>
   </div>
   <div class="fig fig-grid">
     <div>
@@ -408,9 +480,14 @@ pbmc &lt;- subset(pbmc, subset = nFeature_RNA &gt; 200 &amp;
 <!-- 3 -->
 <section class="step" id="s3">
   <div class="step-head"><span class="step-no">03</span><span class="eyebrow">Normalization</span><h2>Remove library-size effects</h2></div>
-  <div class="prose">
-    <p>Droplets differ in how many molecules they capture. Without correction, a well-captured cell looks like it expresses <em>everything</em> more. Log-normalization divides by the cell's total, scales to 10,000, and takes the log so a few very abundant genes do not dominate.</p>
-    <div class="look"><b>Try it</b>Start with <code>TMSB4X</code> or <code>B2M</code>: detected in every cell at high counts, so their raw counts mostly track capture efficiency. Normalize and the slope disappears.</div>
+  <div class="step-intro">
+    <div class="prose">
+      <p>Droplets differ in how many molecules they capture. Without correction, a well-captured cell looks like it expresses <em>everything</em> more. Log-normalization divides by the cell's total, scales to 10,000, and takes the log so a few very abundant genes do not dominate.</p>
+      <div class="look"><b>Try it</b>Start with <code>TMSB4X</code> or <code>B2M</code>: detected in every cell at high counts, so their raw counts mostly track capture efficiency. Normalize and the slope disappears.</div>
+    </div>
+    <figure class="shape"><span class="shape-cap">The matrix at this step</span>
+      <svg class="mx" viewBox="0 0 280 112" role="img" aria-label="Normalization rescales each row so cells with different capture are comparable; the matrix keeps its shape"><text x="8" y="16" class="lbl">raw counts</text><text x="89" y="16" class="lbl">totals</text><rect x="8" y="26" width="77" height="70" class="bg"/><path d="M15 26v70M22 26v70M29 26v70M36 26v70M43 26v70M50 26v70M57 26v70M64 26v70M71 26v70M78 26v70M8 33h77M8 40h77M8 47h77M8 54h77M8 61h77M8 68h77M8 75h77M8 82h77M8 89h77" class="gl"/><rect x="51" y="27" width="5" height="5" class="on"/><rect x="9" y="34" width="5" height="5" class="on"/><rect x="44" y="34" width="5" height="5" class="on"/><rect x="51" y="34" width="5" height="5" class="on"/><rect x="79" y="34" width="5" height="5" class="on"/><rect x="16" y="41" width="5" height="5" class="on"/><rect x="30" y="41" width="5" height="5" class="on"/><rect x="37" y="41" width="5" height="5" class="on"/><rect x="51" y="41" width="5" height="5" class="on"/><rect x="58" y="41" width="5" height="5" class="on"/><rect x="79" y="41" width="5" height="5" class="on"/><rect x="30" y="48" width="5" height="5" class="on"/><rect x="65" y="48" width="5" height="5" class="on"/><rect x="72" y="48" width="5" height="5" class="on"/><rect x="79" y="48" width="5" height="5" class="on"/><rect x="9" y="55" width="5" height="5" class="on"/><rect x="16" y="55" width="5" height="5" class="on"/><rect x="37" y="55" width="5" height="5" class="on"/><rect x="23" y="62" width="5" height="5" class="on"/><rect x="37" y="62" width="5" height="5" class="on"/><rect x="58" y="62" width="5" height="5" class="on"/><rect x="9" y="69" width="5" height="5" class="on"/><rect x="16" y="69" width="5" height="5" class="on"/><rect x="23" y="69" width="5" height="5" class="on"/><rect x="37" y="69" width="5" height="5" class="on"/><rect x="16" y="76" width="5" height="5" class="on"/><rect x="44" y="76" width="5" height="5" class="on"/><rect x="58" y="76" width="5" height="5" class="on"/><rect x="65" y="76" width="5" height="5" class="on"/><rect x="44" y="83" width="5" height="5" class="on"/><rect x="51" y="83" width="5" height="5" class="on"/><rect x="58" y="83" width="5" height="5" class="on"/><rect x="79" y="83" width="5" height="5" class="on"/><rect x="9" y="90" width="5" height="5" class="on"/><rect x="37" y="90" width="5" height="5" class="on"/><rect x="72" y="90" width="5" height="5" class="on"/><rect x="8" y="26" width="77" height="70" class="frame"/><rect x="89" y="27.5" width="27" height="4" class="tot"/><rect x="89" y="34.5" width="10.5" height="4" class="tot"/><rect x="89" y="41.5" width="18" height="4" class="tot"/><rect x="89" y="48.5" width="30" height="4" class="tot"/><rect x="89" y="55.5" width="13.5" height="4" class="tot"/><rect x="89" y="62.5" width="22.5" height="4" class="tot"/><rect x="89" y="69.5" width="9" height="4" class="tot"/><rect x="89" y="76.5" width="25.5" height="4" class="tot"/><rect x="89" y="83.5" width="16.5" height="4" class="tot"/><rect x="89" y="90.5" width="19.5" height="4" class="tot"/><text x="152" y="16" class="lbl">normalized</text><text x="233" y="16" class="lbl">totals</text><rect x="152" y="26" width="77" height="70" class="bg"/><path d="M159 26v70M166 26v70M173 26v70M180 26v70M187 26v70M194 26v70M201 26v70M208 26v70M215 26v70M222 26v70M152 33h77M152 40h77M152 47h77M152 54h77M152 61h77M152 68h77M152 75h77M152 82h77M152 89h77" class="gl"/><rect x="195" y="27" width="5" height="5" class="on"/><rect x="153" y="34" width="5" height="5" class="on"/><rect x="188" y="34" width="5" height="5" class="on"/><rect x="195" y="34" width="5" height="5" class="on"/><rect x="223" y="34" width="5" height="5" class="on"/><rect x="160" y="41" width="5" height="5" class="on"/><rect x="174" y="41" width="5" height="5" class="on"/><rect x="181" y="41" width="5" height="5" class="on"/><rect x="195" y="41" width="5" height="5" class="on"/><rect x="202" y="41" width="5" height="5" class="on"/><rect x="223" y="41" width="5" height="5" class="on"/><rect x="174" y="48" width="5" height="5" class="on"/><rect x="209" y="48" width="5" height="5" class="on"/><rect x="216" y="48" width="5" height="5" class="on"/><rect x="223" y="48" width="5" height="5" class="on"/><rect x="153" y="55" width="5" height="5" class="on"/><rect x="160" y="55" width="5" height="5" class="on"/><rect x="181" y="55" width="5" height="5" class="on"/><rect x="167" y="62" width="5" height="5" class="on"/><rect x="181" y="62" width="5" height="5" class="on"/><rect x="202" y="62" width="5" height="5" class="on"/><rect x="153" y="69" width="5" height="5" class="on"/><rect x="160" y="69" width="5" height="5" class="on"/><rect x="167" y="69" width="5" height="5" class="on"/><rect x="181" y="69" width="5" height="5" class="on"/><rect x="160" y="76" width="5" height="5" class="on"/><rect x="188" y="76" width="5" height="5" class="on"/><rect x="202" y="76" width="5" height="5" class="on"/><rect x="209" y="76" width="5" height="5" class="on"/><rect x="188" y="83" width="5" height="5" class="on"/><rect x="195" y="83" width="5" height="5" class="on"/><rect x="202" y="83" width="5" height="5" class="on"/><rect x="223" y="83" width="5" height="5" class="on"/><rect x="153" y="90" width="5" height="5" class="on"/><rect x="181" y="90" width="5" height="5" class="on"/><rect x="216" y="90" width="5" height="5" class="on"/><rect x="152" y="26" width="77" height="70" class="frame"/><rect x="233" y="27.5" width="22" height="4" class="tot"/><rect x="233" y="34.5" width="22" height="4" class="tot"/><rect x="233" y="41.5" width="22" height="4" class="tot"/><rect x="233" y="48.5" width="22" height="4" class="tot"/><rect x="233" y="55.5" width="22" height="4" class="tot"/><rect x="233" y="62.5" width="22" height="4" class="tot"/><rect x="233" y="69.5" width="22" height="4" class="tot"/><rect x="233" y="76.5" width="22" height="4" class="tot"/><rect x="233" y="83.5" width="22" height="4" class="tot"/><rect x="233" y="90.5" width="22" height="4" class="tot"/><text x="140" y="66" text-anchor="middle" class="op">→</text><text x="8" y="110" class="dim">2,638 × 13,714</text><text x="152" y="110" class="dim">same shape</text></svg>
+      <figcaption>Each <b>row</b> is divided by its total and scaled to 10,000, then log-transformed. Same shape, but row totals no longer differ.</figcaption></figure>
   </div>
   <div class="fig fig-grid">
     <div><div class="plot" id="nm-plot" aria-label="Scatter of gene expression versus total UMIs per cell"></div></div>
@@ -435,10 +512,15 @@ adata.raw = adata' data-r='pbmc &lt;- NormalizeData(pbmc, normalization.method =
 <!-- 4 -->
 <section class="step" id="s4">
   <div class="step-head"><span class="step-no">04</span><span class="eyebrow">Feature selection</span><h2>Keep the genes that vary</h2></div>
-  <div class="prose">
-    <p>Most genes are barely detected or constant across cells; they add noise. We keep the <strong>highly variable genes</strong> (HVGs). Because variance grows with mean expression, each gene is judged against genes of similar abundance.</p>
-    <p><strong>vst</strong> (Seurat v3+, used here): fit the expected variance for each mean from raw counts, standardize each gene by it, and take the variance of the result. 1 means "as variable as expected"; it can't go below 0. Keep the top 2,000.</p>
-    <p><strong>Dispersion z-score</strong> (Seurat v2, older tutorials): z-score each gene's dispersion within bins of similar mean. Negative means <em>less</em> variable than its peers. Same idea, different scale, hence the different shape.</p>
+  <div class="step-intro">
+    <div class="prose">
+      <p>Most genes are barely detected or constant across cells; they add noise. We keep the <strong>highly variable genes</strong> (HVGs). Because variance grows with mean expression, each gene is judged against genes of similar abundance.</p>
+      <p><strong>vst</strong> (Seurat v3+, used here): fit the expected variance for each mean from raw counts, standardize each gene by it, and take the variance of the result. 1 means "as variable as expected"; it can't go below 0. Keep the top 2,000.</p>
+      <p><strong>Dispersion z-score</strong> (Seurat v2, older tutorials): z-score each gene's dispersion within bins of similar mean. Negative means <em>less</em> variable than its peers. Same idea, different scale, hence the different shape.</p>
+    </div>
+    <figure class="shape"><span class="shape-cap">The matrix at this step</span>
+      <svg class="mx" viewBox="0 0 280 122" role="img" aria-label="Feature selection keeps only the highly variable gene columns"><text x="8" y="14" class="lbl">all genes</text><rect x="8" y="22" width="154" height="84" class="bg"/><path d="M15 22v84M22 22v84M29 22v84M36 22v84M43 22v84M50 22v84M57 22v84M64 22v84M71 22v84M78 22v84M85 22v84M92 22v84M99 22v84M106 22v84M113 22v84M120 22v84M127 22v84M134 22v84M141 22v84M148 22v84M155 22v84M8 29h154M8 36h154M8 43h154M8 50h154M8 57h154M8 64h154M8 71h154M8 78h154M8 85h154M8 92h154M8 99h154" class="gl"/><rect x="15" y="22" width="7" height="84" class="keep-col"/><rect x="36" y="22" width="7" height="84" class="keep-col"/><rect x="43" y="22" width="7" height="84" class="keep-col"/><rect x="71" y="22" width="7" height="84" class="keep-col"/><rect x="99" y="22" width="7" height="84" class="keep-col"/><rect x="120" y="22" width="7" height="84" class="keep-col"/><rect x="134" y="22" width="7" height="84" class="keep-col"/><rect x="148" y="22" width="7" height="84" class="keep-col"/><rect x="23" y="23" width="5" height="5" class="on"/><rect x="37" y="23" width="5" height="5" class="on"/><rect x="58" y="23" width="5" height="5" class="on"/><rect x="79" y="23" width="5" height="5" class="on"/><rect x="114" y="23" width="5" height="5" class="on"/><rect x="128" y="23" width="5" height="5" class="on"/><rect x="23" y="30" width="5" height="5" class="on"/><rect x="58" y="30" width="5" height="5" class="on"/><rect x="93" y="30" width="5" height="5" class="on"/><rect x="114" y="30" width="5" height="5" class="on"/><rect x="135" y="30" width="5" height="5" class="on"/><rect x="156" y="30" width="5" height="5" class="on"/><rect x="16" y="37" width="5" height="5" class="on"/><rect x="44" y="37" width="5" height="5" class="on"/><rect x="51" y="37" width="5" height="5" class="on"/><rect x="65" y="37" width="5" height="5" class="on"/><rect x="72" y="37" width="5" height="5" class="on"/><rect x="114" y="37" width="5" height="5" class="on"/><rect x="128" y="37" width="5" height="5" class="on"/><rect x="149" y="37" width="5" height="5" class="on"/><rect x="16" y="44" width="5" height="5" class="on"/><rect x="44" y="44" width="5" height="5" class="on"/><rect x="79" y="44" width="5" height="5" class="on"/><rect x="114" y="44" width="5" height="5" class="on"/><rect x="16" y="51" width="5" height="5" class="on"/><rect x="65" y="51" width="5" height="5" class="on"/><rect x="79" y="51" width="5" height="5" class="on"/><rect x="93" y="51" width="5" height="5" class="on"/><rect x="44" y="58" width="5" height="5" class="on"/><rect x="65" y="58" width="5" height="5" class="on"/><rect x="79" y="58" width="5" height="5" class="on"/><rect x="107" y="58" width="5" height="5" class="on"/><rect x="114" y="58" width="5" height="5" class="on"/><rect x="156" y="58" width="5" height="5" class="on"/><rect x="16" y="65" width="5" height="5" class="on"/><rect x="23" y="65" width="5" height="5" class="on"/><rect x="44" y="65" width="5" height="5" class="on"/><rect x="86" y="65" width="5" height="5" class="on"/><rect x="121" y="65" width="5" height="5" class="on"/><rect x="128" y="65" width="5" height="5" class="on"/><rect x="142" y="65" width="5" height="5" class="on"/><rect x="156" y="65" width="5" height="5" class="on"/><rect x="23" y="72" width="5" height="5" class="on"/><rect x="30" y="72" width="5" height="5" class="on"/><rect x="58" y="72" width="5" height="5" class="on"/><rect x="93" y="72" width="5" height="5" class="on"/><rect x="142" y="72" width="5" height="5" class="on"/><rect x="30" y="79" width="5" height="5" class="on"/><rect x="65" y="79" width="5" height="5" class="on"/><rect x="128" y="79" width="5" height="5" class="on"/><rect x="9" y="86" width="5" height="5" class="on"/><rect x="16" y="86" width="5" height="5" class="on"/><rect x="30" y="86" width="5" height="5" class="on"/><rect x="37" y="86" width="5" height="5" class="on"/><rect x="65" y="86" width="5" height="5" class="on"/><rect x="93" y="86" width="5" height="5" class="on"/><rect x="135" y="86" width="5" height="5" class="on"/><rect x="9" y="93" width="5" height="5" class="on"/><rect x="23" y="93" width="5" height="5" class="on"/><rect x="30" y="93" width="5" height="5" class="on"/><rect x="114" y="93" width="5" height="5" class="on"/><rect x="135" y="93" width="5" height="5" class="on"/><rect x="142" y="93" width="5" height="5" class="on"/><rect x="156" y="93" width="5" height="5" class="on"/><rect x="37" y="100" width="5" height="5" class="on"/><rect x="114" y="100" width="5" height="5" class="on"/><rect x="8" y="22" width="154" height="84" class="frame"/><text x="179" y="69" text-anchor="middle" class="op">→</text><text x="194" y="14" class="lbl">HVGs</text><rect x="194" y="22" width="56" height="84" class="bg"/><path d="M201 22v84M208 22v84M215 22v84M222 22v84M229 22v84M236 22v84M243 22v84M194 29h56M194 36h56M194 43h56M194 50h56M194 57h56M194 64h56M194 71h56M194 78h56M194 85h56M194 92h56M194 99h56" class="gl"/><rect x="194" y="22" width="7" height="84" class="keep-col"/><rect x="201" y="22" width="7" height="84" class="keep-col"/><rect x="208" y="22" width="7" height="84" class="keep-col"/><rect x="215" y="22" width="7" height="84" class="keep-col"/><rect x="222" y="22" width="7" height="84" class="keep-col"/><rect x="229" y="22" width="7" height="84" class="keep-col"/><rect x="236" y="22" width="7" height="84" class="keep-col"/><rect x="243" y="22" width="7" height="84" class="keep-col"/><rect x="237" y="23" width="5" height="5" class="on"/><rect x="209" y="30" width="5" height="5" class="on"/><rect x="216" y="30" width="5" height="5" class="on"/><rect x="223" y="30" width="5" height="5" class="on"/><rect x="244" y="30" width="5" height="5" class="on"/><rect x="223" y="37" width="5" height="5" class="on"/><rect x="230" y="37" width="5" height="5" class="on"/><rect x="244" y="37" width="5" height="5" class="on"/><rect x="195" y="44" width="5" height="5" class="on"/><rect x="202" y="44" width="5" height="5" class="on"/><rect x="209" y="44" width="5" height="5" class="on"/><rect x="216" y="51" width="5" height="5" class="on"/><rect x="195" y="58" width="5" height="5" class="on"/><rect x="202" y="58" width="5" height="5" class="on"/><rect x="209" y="58" width="5" height="5" class="on"/><rect x="216" y="58" width="5" height="5" class="on"/><rect x="209" y="65" width="5" height="5" class="on"/><rect x="216" y="65" width="5" height="5" class="on"/><rect x="195" y="72" width="5" height="5" class="on"/><rect x="216" y="72" width="5" height="5" class="on"/><rect x="223" y="72" width="5" height="5" class="on"/><rect x="230" y="72" width="5" height="5" class="on"/><rect x="195" y="79" width="5" height="5" class="on"/><rect x="202" y="79" width="5" height="5" class="on"/><rect x="209" y="79" width="5" height="5" class="on"/><rect x="216" y="79" width="5" height="5" class="on"/><rect x="230" y="79" width="5" height="5" class="on"/><rect x="195" y="86" width="5" height="5" class="on"/><rect x="209" y="86" width="5" height="5" class="on"/><rect x="223" y="86" width="5" height="5" class="on"/><rect x="237" y="86" width="5" height="5" class="on"/><rect x="244" y="86" width="5" height="5" class="on"/><rect x="209" y="93" width="5" height="5" class="on"/><rect x="223" y="93" width="5" height="5" class="on"/><rect x="195" y="100" width="5" height="5" class="on"/><rect x="209" y="100" width="5" height="5" class="on"/><rect x="216" y="100" width="5" height="5" class="on"/><rect x="230" y="100" width="5" height="5" class="on"/><rect x="237" y="100" width="5" height="5" class="on"/><rect x="244" y="100" width="5" height="5" class="on"/><rect x="194" y="22" width="56" height="84" class="frame"/><text x="8" y="122" class="dim">2,638 × 13,714</text><text x="194" y="122" class="dim">× 2,000</text></svg>
+      <figcaption>Feature selection keeps a subset of <b>columns</b>: the 2,000 most variable genes. Every cell stays.</figcaption></figure>
   </div>
   <div class="fig">
     <div class="controls">
@@ -471,10 +553,15 @@ VariableFeaturePlot(pbmc)
 <!-- 5 -->
 <section class="step" id="s5">
   <div class="step-head"><span class="step-no">05</span><span class="eyebrow">Scaling &amp; PCA</span><h2>Compress 2,000 genes into a few axes</h2></div>
-  <div class="prose">
-    <p>Each gene is <strong>scaled</strong> to mean 0 and variance 1 (clipped at 10), so highly expressed genes don't dominate. <strong>PCA</strong> then finds the directions of greatest variation: genes that rise and fall together load onto the same component, and a PC's top-loading genes tell you what it captures.</p>
-    <p>The <strong>elbow plot</strong> shows where extra PCs stop adding much. We keep the first 10, as in the Seurat tutorial.</p>
-    <div class="look"><b>Try it</b>Click a gene in the panel to color the cells by its expression. High-loading genes light up one end of their PC.</div>
+  <div class="step-intro">
+    <div class="prose">
+      <p>Each gene is <strong>scaled</strong> to mean 0 and variance 1 (clipped at 10), so highly expressed genes don't dominate. <strong>PCA</strong> then finds the directions of greatest variation: genes that rise and fall together load onto the same component, and a PC's top-loading genes tell you what it captures.</p>
+      <p>The <strong>elbow plot</strong> shows where extra PCs stop adding much. We keep the first 10, as in the Seurat tutorial.</p>
+      <div class="look"><b>Try it</b>Click a gene in the panel to color the cells by its expression. High-loading genes light up one end of their PC.</div>
+    </div>
+    <figure class="shape"><span class="shape-cap">The matrix at this step</span>
+      <svg class="mx" viewBox="0 0 280 152" role="img" aria-label="PCA factorizes the cells by genes matrix into a tall cells by PCs score matrix times a short PCs by genes loading matrix"><text x="48" y="16" text-anchor="middle" class="name">X</text><rect x="6" y="26" width="84" height="98" class="bg"/><path d="M13 26v98M20 26v98M27 26v98M34 26v98M41 26v98M48 26v98M55 26v98M62 26v98M69 26v98M76 26v98M83 26v98M6 33h84M6 40h84M6 47h84M6 54h84M6 61h84M6 68h84M6 75h84M6 82h84M6 89h84M6 96h84M6 103h84M6 110h84M6 117h84" class="gl"/><rect x="35" y="27" width="5" height="5" class="on"/><rect x="42" y="27" width="5" height="5" class="on"/><rect x="49" y="27" width="5" height="5" class="on"/><rect x="56" y="27" width="5" height="5" class="on"/><rect x="70" y="27" width="5" height="5" class="on"/><rect x="84" y="27" width="5" height="5" class="on"/><rect x="35" y="34" width="5" height="5" class="on"/><rect x="49" y="34" width="5" height="5" class="on"/><rect x="84" y="41" width="5" height="5" class="on"/><rect x="49" y="48" width="5" height="5" class="on"/><rect x="70" y="48" width="5" height="5" class="on"/><rect x="77" y="48" width="5" height="5" class="on"/><rect x="35" y="55" width="5" height="5" class="on"/><rect x="49" y="55" width="5" height="5" class="on"/><rect x="56" y="55" width="5" height="5" class="on"/><rect x="63" y="55" width="5" height="5" class="on"/><rect x="77" y="55" width="5" height="5" class="on"/><rect x="35" y="62" width="5" height="5" class="on"/><rect x="42" y="62" width="5" height="5" class="on"/><rect x="70" y="62" width="5" height="5" class="on"/><rect x="21" y="69" width="5" height="5" class="on"/><rect x="49" y="69" width="5" height="5" class="on"/><rect x="77" y="69" width="5" height="5" class="on"/><rect x="49" y="76" width="5" height="5" class="on"/><rect x="63" y="76" width="5" height="5" class="on"/><rect x="70" y="76" width="5" height="5" class="on"/><rect x="77" y="76" width="5" height="5" class="on"/><rect x="21" y="83" width="5" height="5" class="on"/><rect x="42" y="83" width="5" height="5" class="on"/><rect x="49" y="83" width="5" height="5" class="on"/><rect x="63" y="83" width="5" height="5" class="on"/><rect x="7" y="90" width="5" height="5" class="on"/><rect x="35" y="90" width="5" height="5" class="on"/><rect x="7" y="97" width="5" height="5" class="on"/><rect x="77" y="97" width="5" height="5" class="on"/><rect x="7" y="104" width="5" height="5" class="on"/><rect x="21" y="104" width="5" height="5" class="on"/><rect x="35" y="104" width="5" height="5" class="on"/><rect x="56" y="104" width="5" height="5" class="on"/><rect x="70" y="104" width="5" height="5" class="on"/><rect x="28" y="111" width="5" height="5" class="on"/><rect x="42" y="111" width="5" height="5" class="on"/><rect x="56" y="111" width="5" height="5" class="on"/><rect x="77" y="111" width="5" height="5" class="on"/><rect x="84" y="111" width="5" height="5" class="on"/><rect x="35" y="118" width="5" height="5" class="on"/><rect x="49" y="118" width="5" height="5" class="on"/><rect x="84" y="118" width="5" height="5" class="on"/><rect x="6" y="26" width="84" height="98" class="frame"/><text x="103" y="80" text-anchor="middle" class="op">≈</text><text x="130" y="16" text-anchor="middle" class="name">scores</text><rect x="116" y="26" width="28" height="98" class="bg"/><path d="M123 26v98M130 26v98M137 26v98M116 33h28M116 40h28M116 47h28M116 54h28M116 61h28M116 68h28M116 75h28M116 82h28M116 89h28M116 96h28M116 103h28M116 110h28M116 117h28" class="gl"/><rect x="117" y="27" width="5" height="5" class="new" opacity="0.60"/><rect x="124" y="27" width="5" height="5" class="new" opacity="0.61"/><rect x="131" y="27" width="5" height="5" class="new" opacity="0.38"/><rect x="138" y="27" width="5" height="5" class="new" opacity="0.27"/><rect x="117" y="34" width="5" height="5" class="new" opacity="0.67"/><rect x="124" y="34" width="5" height="5" class="new" opacity="0.47"/><rect x="131" y="34" width="5" height="5" class="new" opacity="0.40"/><rect x="138" y="34" width="5" height="5" class="new" opacity="0.24"/><rect x="117" y="41" width="5" height="5" class="new" opacity="0.69"/><rect x="124" y="41" width="5" height="5" class="new" opacity="0.60"/><rect x="131" y="41" width="5" height="5" class="new" opacity="0.33"/><rect x="138" y="41" width="5" height="5" class="new" opacity="0.25"/><rect x="117" y="48" width="5" height="5" class="new" opacity="0.60"/><rect x="124" y="48" width="5" height="5" class="new" opacity="0.46"/><rect x="131" y="48" width="5" height="5" class="new" opacity="0.43"/><rect x="138" y="48" width="5" height="5" class="new" opacity="0.20"/><rect x="117" y="55" width="5" height="5" class="new" opacity="0.67"/><rect x="124" y="55" width="5" height="5" class="new" opacity="0.64"/><rect x="131" y="55" width="5" height="5" class="new" opacity="0.38"/><rect x="138" y="55" width="5" height="5" class="new" opacity="0.17"/><rect x="117" y="62" width="5" height="5" class="new" opacity="0.80"/><rect x="124" y="62" width="5" height="5" class="new" opacity="0.59"/><rect x="131" y="62" width="5" height="5" class="new" opacity="0.28"/><rect x="138" y="62" width="5" height="5" class="new" opacity="0.24"/><rect x="117" y="69" width="5" height="5" class="new" opacity="0.61"/><rect x="124" y="69" width="5" height="5" class="new" opacity="0.49"/><rect x="131" y="69" width="5" height="5" class="new" opacity="0.26"/><rect x="138" y="69" width="5" height="5" class="new" opacity="0.18"/><rect x="117" y="76" width="5" height="5" class="new" opacity="0.99"/><rect x="124" y="76" width="5" height="5" class="new" opacity="0.51"/><rect x="131" y="76" width="5" height="5" class="new" opacity="0.45"/><rect x="138" y="76" width="5" height="5" class="new" opacity="0.21"/><rect x="117" y="83" width="5" height="5" class="new" opacity="0.82"/><rect x="124" y="83" width="5" height="5" class="new" opacity="0.66"/><rect x="131" y="83" width="5" height="5" class="new" opacity="0.39"/><rect x="138" y="83" width="5" height="5" class="new" opacity="0.17"/><rect x="117" y="90" width="5" height="5" class="new" opacity="0.82"/><rect x="124" y="90" width="5" height="5" class="new" opacity="0.58"/><rect x="131" y="90" width="5" height="5" class="new" opacity="0.28"/><rect x="138" y="90" width="5" height="5" class="new" opacity="0.17"/><rect x="117" y="97" width="5" height="5" class="new" opacity="0.94"/><rect x="124" y="97" width="5" height="5" class="new" opacity="0.55"/><rect x="131" y="97" width="5" height="5" class="new" opacity="0.29"/><rect x="138" y="97" width="5" height="5" class="new" opacity="0.21"/><rect x="117" y="104" width="5" height="5" class="new" opacity="0.65"/><rect x="124" y="104" width="5" height="5" class="new" opacity="0.64"/><rect x="131" y="104" width="5" height="5" class="new" opacity="0.35"/><rect x="138" y="104" width="5" height="5" class="new" opacity="0.17"/><rect x="117" y="111" width="5" height="5" class="new" opacity="0.92"/><rect x="124" y="111" width="5" height="5" class="new" opacity="0.41"/><rect x="131" y="111" width="5" height="5" class="new" opacity="0.30"/><rect x="138" y="111" width="5" height="5" class="new" opacity="0.16"/><rect x="117" y="118" width="5" height="5" class="new" opacity="0.88"/><rect x="124" y="118" width="5" height="5" class="new" opacity="0.42"/><rect x="131" y="118" width="5" height="5" class="new" opacity="0.35"/><rect x="138" y="118" width="5" height="5" class="new" opacity="0.17"/><rect x="116" y="26" width="28" height="98" class="frame"/><text x="156" y="80" text-anchor="middle" class="op">×</text><text x="210" y="16" text-anchor="middle" class="name">loadings</text><rect x="168" y="26" width="84" height="28" class="bg"/><path d="M175 26v28M182 26v28M189 26v28M196 26v28M203 26v28M210 26v28M217 26v28M224 26v28M231 26v28M238 26v28M245 26v28M168 33h84M168 40h84M168 47h84" class="gl"/><rect x="168" y="26" width="84" height="7" class="load-row" opacity="1.00"/><rect x="168" y="33" width="84" height="7" class="load-row" opacity="0.70"/><rect x="168" y="40" width="84" height="7" class="load-row" opacity="0.45"/><rect x="168" y="47" width="84" height="7" class="load-row" opacity="0.28"/><rect x="169" y="27" width="5" height="5" class="on" opacity="0.98"/><rect x="176" y="27" width="5" height="5" class="on" opacity="0.56"/><rect x="183" y="27" width="5" height="5" class="on" opacity="0.88"/><rect x="190" y="27" width="5" height="5" class="on" opacity="0.62"/><rect x="197" y="27" width="5" height="5" class="on" opacity="0.99"/><rect x="204" y="27" width="5" height="5" class="on" opacity="0.56"/><rect x="211" y="27" width="5" height="5" class="on" opacity="0.95"/><rect x="218" y="27" width="5" height="5" class="on" opacity="0.86"/><rect x="225" y="27" width="5" height="5" class="on" opacity="0.94"/><rect x="232" y="27" width="5" height="5" class="on" opacity="1.00"/><rect x="239" y="27" width="5" height="5" class="on" opacity="0.66"/><rect x="246" y="27" width="5" height="5" class="on" opacity="0.70"/><rect x="169" y="34" width="5" height="5" class="on" opacity="0.61"/><rect x="176" y="34" width="5" height="5" class="on" opacity="0.47"/><rect x="183" y="34" width="5" height="5" class="on" opacity="0.47"/><rect x="190" y="34" width="5" height="5" class="on" opacity="0.46"/><rect x="197" y="34" width="5" height="5" class="on" opacity="0.66"/><rect x="204" y="34" width="5" height="5" class="on" opacity="0.66"/><rect x="211" y="34" width="5" height="5" class="on" opacity="0.64"/><rect x="218" y="34" width="5" height="5" class="on" opacity="0.46"/><rect x="225" y="34" width="5" height="5" class="on" opacity="0.68"/><rect x="232" y="34" width="5" height="5" class="on" opacity="0.55"/><rect x="239" y="34" width="5" height="5" class="on" opacity="0.46"/><rect x="246" y="34" width="5" height="5" class="on" opacity="0.53"/><rect x="169" y="41" width="5" height="5" class="on" opacity="0.33"/><rect x="176" y="41" width="5" height="5" class="on" opacity="0.26"/><rect x="183" y="41" width="5" height="5" class="on" opacity="0.36"/><rect x="190" y="41" width="5" height="5" class="on" opacity="0.32"/><rect x="197" y="41" width="5" height="5" class="on" opacity="0.36"/><rect x="204" y="41" width="5" height="5" class="on" opacity="0.44"/><rect x="211" y="41" width="5" height="5" class="on" opacity="0.38"/><rect x="218" y="41" width="5" height="5" class="on" opacity="0.33"/><rect x="225" y="41" width="5" height="5" class="on" opacity="0.42"/><rect x="232" y="41" width="5" height="5" class="on" opacity="0.45"/><rect x="239" y="41" width="5" height="5" class="on" opacity="0.35"/><rect x="246" y="41" width="5" height="5" class="on" opacity="0.44"/><rect x="169" y="48" width="5" height="5" class="on" opacity="0.16"/><rect x="176" y="48" width="5" height="5" class="on" opacity="0.17"/><rect x="183" y="48" width="5" height="5" class="on" opacity="0.18"/><rect x="190" y="48" width="5" height="5" class="on" opacity="0.27"/><rect x="197" y="48" width="5" height="5" class="on" opacity="0.24"/><rect x="204" y="48" width="5" height="5" class="on" opacity="0.24"/><rect x="211" y="48" width="5" height="5" class="on" opacity="0.19"/><rect x="218" y="48" width="5" height="5" class="on" opacity="0.22"/><rect x="225" y="48" width="5" height="5" class="on" opacity="0.27"/><rect x="232" y="48" width="5" height="5" class="on" opacity="0.17"/><rect x="239" y="48" width="5" height="5" class="on" opacity="0.17"/><rect x="246" y="48" width="5" height="5" class="on" opacity="0.16"/><rect x="168" y="26" width="84" height="28" class="frame"/><text x="210" y="68" text-anchor="middle" class="lbl">PCs × genes</text><text x="210" y="80" text-anchor="middle" class="dim">50 × 2,000</text><text x="48" y="138" text-anchor="middle" class="lbl">cells × genes</text><text x="48" y="150" text-anchor="middle" class="dim">2,638 × 2,000</text><text x="130" y="138" text-anchor="middle" class="lbl">cells × PCs</text><text x="130" y="150" text-anchor="middle" class="dim">2,638 × 50</text></svg>
+      <figcaption>PCA splits the big matrix into two thin ones. <b>Scores</b> place each cell on each PC; <b>loadings</b> say how much each gene contributes. Earlier PCs carry more variance (stronger colour). Later steps use only the first 10 score columns.</figcaption></figure>
   </div>
   <div class="fig fig-grid">
     <div>
@@ -505,9 +592,14 @@ ElbowPlot(pbmc, ndims = 50)'></pre></details>
 <!-- 6 -->
 <section class="step" id="s6">
   <div class="step-head"><span class="step-no">06</span><span class="eyebrow">Neighbor graph</span><h2>Connect each cell to its look-alikes</h2></div>
-  <div class="prose">
-    <p>For each cell, find the <em>k</em> most similar cells by distance in the 10-PC space, and link them. The resulting <strong>kNN graph</strong> is the foundation for what follows: both the 2D layout (step 07) and clustering (step 08) are computed from it. Small <em>k</em> keeps fine structure but fragments the graph; large <em>k</em> can merge small groups. We use 15, the scanpy default.</p>
-    <div class="look"><b>Try it</b>Hover a cell. Cells are drawn at their PC1/PC2 positions, but neighbors were chosen using all 10 PCs, so many sit far away in this 2D view. That limitation motivates the next step.</div>
+  <div class="step-intro">
+    <div class="prose">
+      <p>For each cell, find the <em>k</em> most similar cells by distance in the 10-PC space, and link them. The resulting <strong>kNN graph</strong> is the foundation for what follows: both the 2D layout (step 07) and clustering (step 08) are computed from it. Small <em>k</em> keeps fine structure but fragments the graph; large <em>k</em> can merge small groups. We use 15, the scanpy default.</p>
+      <div class="look"><b>Try it</b>Hover a cell. Cells are drawn at their PC1/PC2 positions, but neighbors were chosen using all 10 PCs, so many sit far away in this 2D view. That limitation motivates the next step.</div>
+    </div>
+    <figure class="shape"><span class="shape-cap">The matrix at this step</span>
+      <svg class="mx" viewBox="0 0 280 150" role="img" aria-label="The neighbor graph is a sparse cells by cells matrix built from the PCA scores; each row marks a cell’s nearest neighbors"><text x="18.5" y="14" text-anchor="middle" class="lbl">scores</text><rect x="8" y="24" width="21" height="98" class="bg"/><path d="M15 24v98M22 24v98M8 31h21M8 38h21M8 45h21M8 52h21M8 59h21M8 66h21M8 73h21M8 80h21M8 87h21M8 94h21M8 101h21M8 108h21M8 115h21" class="gl"/><rect x="9" y="25" width="5" height="5" class="new" opacity="0.62"/><rect x="16" y="25" width="5" height="5" class="new" opacity="0.60"/><rect x="23" y="25" width="5" height="5" class="new" opacity="0.38"/><rect x="9" y="32" width="5" height="5" class="new" opacity="0.77"/><rect x="16" y="32" width="5" height="5" class="new" opacity="0.45"/><rect x="23" y="32" width="5" height="5" class="new" opacity="0.41"/><rect x="9" y="39" width="5" height="5" class="new" opacity="0.91"/><rect x="16" y="39" width="5" height="5" class="new" opacity="0.55"/><rect x="23" y="39" width="5" height="5" class="new" opacity="0.35"/><rect x="9" y="46" width="5" height="5" class="new" opacity="0.66"/><rect x="16" y="46" width="5" height="5" class="new" opacity="0.39"/><rect x="23" y="46" width="5" height="5" class="new" opacity="0.32"/><rect x="9" y="53" width="5" height="5" class="new" opacity="0.81"/><rect x="16" y="53" width="5" height="5" class="new" opacity="0.41"/><rect x="23" y="53" width="5" height="5" class="new" opacity="0.41"/><rect x="9" y="60" width="5" height="5" class="new" opacity="0.65"/><rect x="16" y="60" width="5" height="5" class="new" opacity="0.46"/><rect x="23" y="60" width="5" height="5" class="new" opacity="0.26"/><rect x="9" y="67" width="5" height="5" class="new" opacity="1.00"/><rect x="16" y="67" width="5" height="5" class="new" opacity="0.62"/><rect x="23" y="67" width="5" height="5" class="new" opacity="0.42"/><rect x="9" y="74" width="5" height="5" class="new" opacity="0.83"/><rect x="16" y="74" width="5" height="5" class="new" opacity="0.40"/><rect x="23" y="74" width="5" height="5" class="new" opacity="0.31"/><rect x="9" y="81" width="5" height="5" class="new" opacity="0.77"/><rect x="16" y="81" width="5" height="5" class="new" opacity="0.42"/><rect x="23" y="81" width="5" height="5" class="new" opacity="0.44"/><rect x="9" y="88" width="5" height="5" class="new" opacity="0.72"/><rect x="16" y="88" width="5" height="5" class="new" opacity="0.43"/><rect x="23" y="88" width="5" height="5" class="new" opacity="0.41"/><rect x="9" y="95" width="5" height="5" class="new" opacity="0.61"/><rect x="16" y="95" width="5" height="5" class="new" opacity="0.68"/><rect x="23" y="95" width="5" height="5" class="new" opacity="0.34"/><rect x="9" y="102" width="5" height="5" class="new" opacity="0.80"/><rect x="16" y="102" width="5" height="5" class="new" opacity="0.49"/><rect x="23" y="102" width="5" height="5" class="new" opacity="0.35"/><rect x="9" y="109" width="5" height="5" class="new" opacity="0.63"/><rect x="16" y="109" width="5" height="5" class="new" opacity="0.40"/><rect x="23" y="109" width="5" height="5" class="new" opacity="0.42"/><rect x="9" y="116" width="5" height="5" class="new" opacity="0.66"/><rect x="16" y="116" width="5" height="5" class="new" opacity="0.63"/><rect x="23" y="116" width="5" height="5" class="new" opacity="0.29"/><rect x="8" y="24" width="21" height="98" class="frame"/><text x="42" y="78" text-anchor="middle" class="op">→</text><text x="104" y="14" text-anchor="middle" class="lbl">cells × cells</text><rect x="55" y="24" width="98" height="98" class="bg"/><path d="M62 24v98M69 24v98M76 24v98M83 24v98M90 24v98M97 24v98M104 24v98M111 24v98M118 24v98M125 24v98M132 24v98M139 24v98M146 24v98M55 31h98M55 38h98M55 45h98M55 52h98M55 59h98M55 66h98M55 73h98M55 80h98M55 87h98M55 94h98M55 101h98M55 108h98M55 115h98" class="gl"/><rect x="70" y="25" width="5" height="5" class="on"/><rect x="84" y="25" width="5" height="5" class="on"/><rect x="56" y="32" width="5" height="5" class="on"/><rect x="77" y="32" width="5" height="5" class="on"/><rect x="84" y="39" width="5" height="5" class="on"/><rect x="63" y="39" width="5" height="5" class="on"/><rect x="63" y="46" width="5" height="5" class="on"/><rect x="56" y="46" width="5" height="5" class="on"/><rect x="56" y="53" width="5" height="5" class="on"/><rect x="77" y="53" width="5" height="5" class="on"/><rect x="119" y="60" width="5" height="5" class="on"/><rect x="112" y="60" width="5" height="5" class="on"/><rect x="112" y="67" width="5" height="5" class="on"/><rect x="91" y="67" width="5" height="5" class="on"/><rect x="98" y="74" width="5" height="5" class="on"/><rect x="112" y="74" width="5" height="5" class="on"/><rect x="105" y="81" width="5" height="5" class="on"/><rect x="98" y="81" width="5" height="5" class="on"/><rect x="98" y="88" width="5" height="5" class="on"/><rect x="91" y="88" width="5" height="5" class="on"/><rect x="140" y="95" width="5" height="5" class="on"/><rect x="133" y="95" width="5" height="5" class="on"/><rect x="126" y="102" width="5" height="5" class="on"/><rect x="140" y="102" width="5" height="5" class="on"/><rect x="133" y="109" width="5" height="5" class="on"/><rect x="126" y="109" width="5" height="5" class="on"/><rect x="126" y="116" width="5" height="5" class="on"/><rect x="133" y="116" width="5" height="5" class="on"/><rect x="105" y="53" width="5" height="5" class="on"/><rect x="70" y="102" width="5" height="5" class="on"/><rect x="55" y="24" width="98" height="98" class="frame"/><text x="166" y="78" text-anchor="middle" class="op">=</text><path class="edge" d="M207.7 55.5L198.0 65.2M207.7 55.5L200.9 46.3M198.0 65.2L189.8 55.9M189.8 55.9L186.7 46.4M186.7 46.4L200.9 46.3M200.9 46.3L231.2 52.0M247.5 55.8L237.1 60.2M247.5 55.8L246.2 40.1M237.1 60.2L231.2 52.0M231.2 52.0L232.0 38.9M232.0 38.9L246.2 40.1M246.2 40.1L212.5 97.1M225.9 96.9L217.4 105.0M225.9 96.9L227.9 84.3M217.4 105.0L212.5 97.1M212.5 97.1L214.8 84.6M214.8 84.6L227.9 84.3"/><circle cx="207.7" cy="55.5" r="3.2" class="node"/><circle cx="198.0" cy="65.2" r="3.2" class="node"/><circle cx="189.8" cy="55.9" r="3.2" class="node"/><circle cx="186.7" cy="46.4" r="3.2" class="node"/><circle cx="200.9" cy="46.3" r="3.2" class="node"/><circle cx="247.5" cy="55.8" r="3.2" class="node"/><circle cx="237.1" cy="60.2" r="3.2" class="node"/><circle cx="231.2" cy="52.0" r="3.2" class="node"/><circle cx="232.0" cy="38.9" r="3.2" class="node"/><circle cx="246.2" cy="40.1" r="3.2" class="node"/><circle cx="225.9" cy="96.9" r="3.2" class="node"/><circle cx="217.4" cy="105.0" r="3.2" class="node"/><circle cx="212.5" cy="97.1" r="3.2" class="node"/><circle cx="214.8" cy="84.6" r="3.2" class="node"/><circle cx="227.9" cy="84.3" r="3.2" class="node"/><text x="18.5" y="138" text-anchor="middle" class="dim">10 PCs</text><text x="55" y="138" class="dim">2,638 × 2,638</text><text x="55" y="150" class="lbl">15 neighbors per row</text></svg>
+      <figcaption>The graph is a new, square matrix: <b>cells × cells</b>. Row <i>i</i> marks the 15 cells closest to cell <i>i</i> in PC space; everything else is 0.</figcaption></figure>
   </div>
   <div class="fig fig-grid">
     <div><div class="plot" id="nn-plot" aria-label="kNN graph drawn on PC1 and PC2"></div></div>
@@ -526,9 +618,14 @@ ElbowPlot(pbmc, ndims = 50)'></pre></details>
 <!-- 7 -->
 <section class="step" id="s7">
   <div class="step-head"><span class="step-no">07</span><span class="eyebrow">Visualization</span><h2>Lay the graph out in 2D with UMAP</h2></div>
-  <div class="prose">
-    <p>UMAP draws the graph from step 06 so that connected cells sit close together. It is for <strong>looking</strong> only; no later step uses its coordinates.</p>
-    <p><strong>Start (epoch 0):</strong> a <em>spectral layout</em> of the graph, from the two leading eigenvectors of its Laplacian; it already roughly groups well-connected cells. <strong>Optimization:</strong> for 500 epochs, cells are pulled toward graph neighbors and pushed away from random non-neighbors. Neighborhoods on a UMAP are meaningful; distances between islands and their sizes are not.</p>
+  <div class="step-intro">
+    <div class="prose">
+      <p>UMAP draws the graph from step 06 so that connected cells sit close together. It is for <strong>looking</strong> only; no later step uses its coordinates.</p>
+      <p><strong>Start (epoch 0):</strong> a <em>spectral layout</em> of the graph, from the two leading eigenvectors of its Laplacian; it already roughly groups well-connected cells. <strong>Optimization:</strong> for 500 epochs, cells are pulled toward graph neighbors and pushed away from random non-neighbors. Neighborhoods on a UMAP are meaningful; distances between islands and their sizes are not.</p>
+    </div>
+    <figure class="shape"><span class="shape-cap">The matrix at this step</span>
+      <svg class="mx" viewBox="0 0 280 140" role="img" aria-label="UMAP turns the neighbor graph into two coordinates per cell, which are plotted"><text x="50" y="14" text-anchor="middle" class="lbl">graph</text><path class="edge" d="M40.7 55.5L31.0 65.2M40.7 55.5L33.9 46.3M31.0 65.2L22.8 55.9M22.8 55.9L19.7 46.4M19.7 46.4L33.9 46.3M33.9 46.3L64.2 52.0M80.5 55.8L70.1 60.2M80.5 55.8L79.2 40.1M70.1 60.2L64.2 52.0M64.2 52.0L65.0 38.9M65.0 38.9L79.2 40.1M79.2 40.1L45.5 97.1M58.9 96.9L50.4 105.0M58.9 96.9L60.9 84.3M50.4 105.0L45.5 97.1M45.5 97.1L47.8 84.6M47.8 84.6L60.9 84.3"/><circle cx="40.7" cy="55.5" r="3.2" class="node"/><circle cx="31.0" cy="65.2" r="3.2" class="node"/><circle cx="22.8" cy="55.9" r="3.2" class="node"/><circle cx="19.7" cy="46.4" r="3.2" class="node"/><circle cx="33.9" cy="46.3" r="3.2" class="node"/><circle cx="80.5" cy="55.8" r="3.2" class="node"/><circle cx="70.1" cy="60.2" r="3.2" class="node"/><circle cx="64.2" cy="52.0" r="3.2" class="node"/><circle cx="65.0" cy="38.9" r="3.2" class="node"/><circle cx="79.2" cy="40.1" r="3.2" class="node"/><circle cx="58.9" cy="96.9" r="3.2" class="node"/><circle cx="50.4" cy="105.0" r="3.2" class="node"/><circle cx="45.5" cy="97.1" r="3.2" class="node"/><circle cx="47.8" cy="84.6" r="3.2" class="node"/><circle cx="60.9" cy="84.3" r="3.2" class="node"/><text x="102" y="78" text-anchor="middle" class="op">→</text><text x="123" y="14" text-anchor="middle" class="lbl">cells × 2</text><rect x="116" y="24" width="14" height="98" class="bg"/><path d="M123 24v98M116 31h14M116 38h14M116 45h14M116 52h14M116 59h14M116 66h14M116 73h14M116 80h14M116 87h14M116 94h14M116 101h14M116 108h14M116 115h14" class="gl"/><rect x="117" y="25" width="5" height="5" class="new" opacity="0.56"/><rect x="124" y="25" width="5" height="5" class="new" opacity="0.60"/><rect x="117" y="32" width="5" height="5" class="new" opacity="0.73"/><rect x="124" y="32" width="5" height="5" class="new" opacity="0.86"/><rect x="117" y="39" width="5" height="5" class="new" opacity="0.61"/><rect x="124" y="39" width="5" height="5" class="new" opacity="0.60"/><rect x="117" y="46" width="5" height="5" class="new" opacity="0.65"/><rect x="124" y="46" width="5" height="5" class="new" opacity="0.89"/><rect x="117" y="53" width="5" height="5" class="new" opacity="0.62"/><rect x="124" y="53" width="5" height="5" class="new" opacity="0.88"/><rect x="117" y="60" width="5" height="5" class="new" opacity="0.85"/><rect x="124" y="60" width="5" height="5" class="new" opacity="0.61"/><rect x="117" y="67" width="5" height="5" class="new" opacity="0.79"/><rect x="124" y="67" width="5" height="5" class="new" opacity="0.75"/><rect x="117" y="74" width="5" height="5" class="new" opacity="0.74"/><rect x="124" y="74" width="5" height="5" class="new" opacity="1.00"/><rect x="117" y="81" width="5" height="5" class="new" opacity="0.59"/><rect x="124" y="81" width="5" height="5" class="new" opacity="0.56"/><rect x="117" y="88" width="5" height="5" class="new" opacity="0.97"/><rect x="124" y="88" width="5" height="5" class="new" opacity="0.73"/><rect x="117" y="95" width="5" height="5" class="new" opacity="0.64"/><rect x="124" y="95" width="5" height="5" class="new" opacity="0.70"/><rect x="117" y="102" width="5" height="5" class="new" opacity="0.71"/><rect x="124" y="102" width="5" height="5" class="new" opacity="0.98"/><rect x="117" y="109" width="5" height="5" class="new" opacity="0.64"/><rect x="124" y="109" width="5" height="5" class="new" opacity="0.65"/><rect x="117" y="116" width="5" height="5" class="new" opacity="0.81"/><rect x="124" y="116" width="5" height="5" class="new" opacity="0.80"/><rect x="116" y="24" width="14" height="98" class="frame"/><text x="144" y="78" text-anchor="middle" class="op">→</text><rect x="160" y="24" width="104" height="98" class="plotbox"/><circle cx="187.9" cy="62.6" r="2.4" class="c0"/><circle cx="193.7" cy="57.8" r="2.4" class="c0"/><circle cx="191.6" cy="53.3" r="2.4" class="c0"/><circle cx="191.9" cy="50.0" r="2.4" class="c0"/><circle cx="180.5" cy="43.1" r="2.4" class="c0"/><circle cx="177.2" cy="52.7" r="2.4" class="c0"/><circle cx="190.2" cy="61.1" r="2.4" class="c0"/><circle cx="191.3" cy="53.4" r="2.4" class="c0"/><circle cx="192.7" cy="50.8" r="2.4" class="c0"/><circle cx="175.7" cy="56.8" r="2.4" class="c0"/><circle cx="182.8" cy="53.0" r="2.4" class="c0"/><circle cx="185.3" cy="62.9" r="2.4" class="c0"/><circle cx="195.4" cy="54.0" r="2.4" class="c0"/><circle cx="178.4" cy="57.4" r="2.4" class="c0"/><circle cx="234.3" cy="55.2" r="2.4" class="c2"/><circle cx="229.5" cy="46.2" r="2.4" class="c2"/><circle cx="248.1" cy="40.2" r="2.4" class="c2"/><circle cx="242.1" cy="48.6" r="2.4" class="c2"/><circle cx="248.6" cy="43.0" r="2.4" class="c2"/><circle cx="244.4" cy="57.9" r="2.4" class="c2"/><circle cx="230.2" cy="40.7" r="2.4" class="c2"/><circle cx="245.1" cy="41.3" r="2.4" class="c2"/><circle cx="232.4" cy="55.5" r="2.4" class="c2"/><circle cx="247.5" cy="54.5" r="2.4" class="c2"/><circle cx="248.8" cy="52.2" r="2.4" class="c2"/><circle cx="236.2" cy="33.9" r="2.4" class="c2"/><circle cx="245.1" cy="38.3" r="2.4" class="c2"/><circle cx="241.6" cy="50.8" r="2.4" class="c2"/><circle cx="204.9" cy="96.3" r="2.4" class="c3"/><circle cx="225.1" cy="103.4" r="2.4" class="c3"/><circle cx="203.1" cy="97.5" r="2.4" class="c3"/><circle cx="215.2" cy="104.3" r="2.4" class="c3"/><circle cx="221.6" cy="98.6" r="2.4" class="c3"/><circle cx="213.1" cy="106.4" r="2.4" class="c3"/><circle cx="205.5" cy="106.3" r="2.4" class="c3"/><circle cx="218.2" cy="94.6" r="2.4" class="c3"/><circle cx="209.8" cy="101.2" r="2.4" class="c3"/><circle cx="207.3" cy="87.0" r="2.4" class="c3"/><circle cx="217.4" cy="108.9" r="2.4" class="c3"/><circle cx="213.5" cy="99.4" r="2.4" class="c3"/><circle cx="214.7" cy="90.4" r="2.4" class="c3"/><circle cx="218.1" cy="105.5" r="2.4" class="c3"/><text x="212" y="14" text-anchor="middle" class="lbl">UMAP plot</text><text x="116" y="138" class="dim">2,638 × 2</text></svg>
+      <figcaption>UMAP reads the graph and returns just <b>two columns</b>, an x and y for each cell. They are for plotting only.</figcaption></figure>
   </div>
   <div class="fig fig-grid">
     <div><div class="plot" id="um-plot" aria-label="Cells laid out by UMAP"></div></div>
@@ -551,10 +648,15 @@ DimPlot(pbmc, reduction = "umap")'></pre></details>
 <!-- 8 -->
 <section class="step" id="s8">
   <div class="step-head"><span class="step-no">08</span><span class="eyebrow">Clustering</span><h2>Find communities in the graph</h2></div>
-  <div class="prose">
-    <p>The <strong>Leiden algorithm</strong> splits the kNN graph into communities: groups with many edges inside, few between. It works on the graph, never on UMAP coordinates; the UMAP is just a convenient place to show the result.</p>
-    <p><strong>Resolution</strong> controls granularity. There is no correct value; choose one whose clusters you can explain. At 0.5 (the Seurat tutorial's value) we get 9 clusters.</p>
-    <div class="look"><b>Try it</b>Slide the resolution to watch clusters split. Switch the view to PCA: the cluster labels are identical, only the layout changes.</div>
+  <div class="step-intro">
+    <div class="prose">
+      <p>The <strong>Leiden algorithm</strong> splits the kNN graph into communities: groups with many edges inside, few between. It works on the graph, never on UMAP coordinates; the UMAP is just a convenient place to show the result.</p>
+      <p><strong>Resolution</strong> controls granularity. There is no correct value; choose one whose clusters you can explain. At 0.5 (the Seurat tutorial's value) we get 9 clusters.</p>
+      <div class="look"><b>Try it</b>Slide the resolution to watch clusters split. Switch the view to PCA: the cluster labels are identical, only the layout changes.</div>
+    </div>
+    <figure class="shape"><span class="shape-cap">The matrix at this step</span>
+      <svg class="mx" viewBox="0 0 280 140" role="img" aria-label="Leiden clustering splits the neighbor graph into communities and returns one cluster label per cell"><text x="50" y="14" text-anchor="middle" class="lbl">graph</text><path class="edge" d="M40.7 55.5L31.0 65.2M40.7 55.5L33.9 46.3M31.0 65.2L22.8 55.9M22.8 55.9L19.7 46.4M19.7 46.4L33.9 46.3M33.9 46.3L64.2 52.0M80.5 55.8L70.1 60.2M80.5 55.8L79.2 40.1M70.1 60.2L64.2 52.0M64.2 52.0L65.0 38.9M65.0 38.9L79.2 40.1M79.2 40.1L45.5 97.1M58.9 96.9L50.4 105.0M58.9 96.9L60.9 84.3M50.4 105.0L45.5 97.1M45.5 97.1L47.8 84.6M47.8 84.6L60.9 84.3"/><circle cx="40.7" cy="55.5" r="3.2" class="c0"/><circle cx="31.0" cy="65.2" r="3.2" class="c0"/><circle cx="22.8" cy="55.9" r="3.2" class="c0"/><circle cx="19.7" cy="46.4" r="3.2" class="c0"/><circle cx="33.9" cy="46.3" r="3.2" class="c0"/><circle cx="80.5" cy="55.8" r="3.2" class="c2"/><circle cx="70.1" cy="60.2" r="3.2" class="c2"/><circle cx="64.2" cy="52.0" r="3.2" class="c2"/><circle cx="65.0" cy="38.9" r="3.2" class="c2"/><circle cx="79.2" cy="40.1" r="3.2" class="c2"/><circle cx="58.9" cy="96.9" r="3.2" class="c3"/><circle cx="50.4" cy="105.0" r="3.2" class="c3"/><circle cx="45.5" cy="97.1" r="3.2" class="c3"/><circle cx="47.8" cy="84.6" r="3.2" class="c3"/><circle cx="60.9" cy="84.3" r="3.2" class="c3"/><text x="102" y="78" text-anchor="middle" class="op">→</text><text x="129" y="14" text-anchor="middle" class="lbl">leiden</text><rect x="120" y="24" width="18" height="7" class="c2" opacity=".85"/><text x="129" y="29.8" text-anchor="middle" class="lab">2</text><rect x="120" y="31" width="18" height="7" class="c0" opacity=".85"/><text x="129" y="36.8" text-anchor="middle" class="lab">0</text><rect x="120" y="38" width="18" height="7" class="c2" opacity=".85"/><text x="129" y="43.8" text-anchor="middle" class="lab">2</text><rect x="120" y="45" width="18" height="7" class="c3" opacity=".85"/><text x="129" y="50.8" text-anchor="middle" class="lab">3</text><rect x="120" y="52" width="18" height="7" class="c3" opacity=".85"/><text x="129" y="57.8" text-anchor="middle" class="lab">3</text><rect x="120" y="59" width="18" height="7" class="c2" opacity=".85"/><text x="129" y="64.8" text-anchor="middle" class="lab">2</text><rect x="120" y="66" width="18" height="7" class="c2" opacity=".85"/><text x="129" y="71.8" text-anchor="middle" class="lab">2</text><rect x="120" y="73" width="18" height="7" class="c0" opacity=".85"/><text x="129" y="78.8" text-anchor="middle" class="lab">0</text><rect x="120" y="80" width="18" height="7" class="c0" opacity=".85"/><text x="129" y="85.8" text-anchor="middle" class="lab">0</text><rect x="120" y="87" width="18" height="7" class="c2" opacity=".85"/><text x="129" y="92.8" text-anchor="middle" class="lab">2</text><rect x="120" y="94" width="18" height="7" class="c3" opacity=".85"/><text x="129" y="99.8" text-anchor="middle" class="lab">3</text><rect x="120" y="101" width="18" height="7" class="c0" opacity=".85"/><text x="129" y="106.8" text-anchor="middle" class="lab">0</text><rect x="120" y="108" width="18" height="7" class="c0" opacity=".85"/><text x="129" y="113.8" text-anchor="middle" class="lab">0</text><rect x="120" y="115" width="18" height="7" class="c3" opacity=".85"/><text x="129" y="120.8" text-anchor="middle" class="lab">3</text><rect x="120" y="24" width="18" height="98" class="frame"/><text x="150" y="34" class="lbl">one label</text><text x="150" y="47" class="lbl">per cell</text><text x="150" y="118" class="dim">9 clusters: 0–8</text><text x="120" y="138" class="dim">2,638 × 1</text></svg>
+      <figcaption>Clustering cuts the same graph into communities. The result is a <b>single column</b>: a cluster label for each cell.</figcaption></figure>
   </div>
   <div class="fig fig-grid">
     <div><div class="plot" id="ld-plot" aria-label="Cells colored by Leiden cluster"></div></div>
@@ -575,10 +677,15 @@ DimPlot(pbmc, reduction = "umap")'></pre></details>
 <!-- 9 -->
 <section class="step" id="s9">
   <div class="step-head"><span class="step-no">09</span><span class="eyebrow">Marker genes</span><h2>Find what makes each cluster different</h2></div>
-  <div class="prose">
-    <p>For each cluster, every gene is compared against all other cells (<strong>Wilcoxon rank-sum test</strong>) and ranked by how strongly it is up in that cluster. In the <strong>dot plot</strong>, dot size is the fraction of cells expressing the gene and color is mean expression; a good marker is large and dark in one row only.</p>
-    <p>The p-values are inflated because the clusters were defined from the same data. Use the ranking, not the p-value.</p>
-    <div class="look"><b>Try it</b>Click a gene column to paint it on the UMAP; click a cluster name to list its top markers.</div>
+  <div class="step-intro">
+    <div class="prose">
+      <p>For each cluster, every gene is compared against all other cells (<strong>Wilcoxon rank-sum test</strong>) and ranked by how strongly it is up in that cluster. In the <strong>dot plot</strong>, dot size is the fraction of cells expressing the gene and color is mean expression; a good marker is large and dark in one row only.</p>
+      <p>The p-values are inflated because the clusters were defined from the same data. Use the ranking, not the p-value.</p>
+      <div class="look"><b>Try it</b>Click a gene column to paint it on the UMAP; click a cluster name to list its top markers.</div>
+    </div>
+    <figure class="shape"><span class="shape-cap">The matrix at this step</span>
+      <svg class="mx" viewBox="0 0 280 140" role="img" aria-label="Marker detection groups the rows by cluster and ranks the genes that are higher in each group than in the rest"><text x="18" y="14" class="lbl">cells by cluster</text><rect x="8" y="24" width="6" height="35" class="c0"/><rect x="8" y="59" width="6" height="35" class="c2"/><rect x="8" y="94" width="6" height="28" class="c3"/><rect x="18" y="24" width="105" height="98" class="bg"/><path d="M25 24v98M32 24v98M39 24v98M46 24v98M53 24v98M60 24v98M67 24v98M74 24v98M81 24v98M88 24v98M95 24v98M102 24v98M109 24v98M116 24v98M18 31h105M18 38h105M18 45h105M18 52h105M18 59h105M18 66h105M18 73h105M18 80h105M18 87h105M18 94h105M18 101h105M18 108h105M18 115h105" class="gl"/><rect x="19" y="25" width="5" height="5" class="on"/><rect x="33" y="25" width="5" height="5" class="on"/><rect x="40" y="25" width="5" height="5" class="on"/><rect x="89" y="25" width="5" height="5" class="on"/><rect x="19" y="32" width="5" height="5" class="on"/><rect x="33" y="32" width="5" height="5" class="on"/><rect x="40" y="32" width="5" height="5" class="on"/><rect x="89" y="32" width="5" height="5" class="on"/><rect x="19" y="39" width="5" height="5" class="on"/><rect x="26" y="39" width="5" height="5" class="on"/><rect x="33" y="39" width="5" height="5" class="on"/><rect x="40" y="39" width="5" height="5" class="on"/><rect x="89" y="39" width="5" height="5" class="on"/><rect x="117" y="39" width="5" height="5" class="on"/><rect x="19" y="46" width="5" height="5" class="on"/><rect x="26" y="46" width="5" height="5" class="on"/><rect x="40" y="46" width="5" height="5" class="on"/><rect x="47" y="46" width="5" height="5" class="on"/><rect x="110" y="46" width="5" height="5" class="on"/><rect x="117" y="46" width="5" height="5" class="on"/><rect x="19" y="53" width="5" height="5" class="on"/><rect x="26" y="53" width="5" height="5" class="on"/><rect x="47" y="53" width="5" height="5" class="on"/><rect x="68" y="53" width="5" height="5" class="on"/><rect x="18" y="24" width="28" height="35" class="blk0"/><rect x="61" y="60" width="5" height="5" class="on"/><rect x="68" y="60" width="5" height="5" class="on"/><rect x="54" y="67" width="5" height="5" class="on"/><rect x="68" y="67" width="5" height="5" class="on"/><rect x="47" y="74" width="5" height="5" class="on"/><rect x="54" y="74" width="5" height="5" class="on"/><rect x="61" y="74" width="5" height="5" class="on"/><rect x="68" y="74" width="5" height="5" class="on"/><rect x="75" y="74" width="5" height="5" class="on"/><rect x="40" y="81" width="5" height="5" class="on"/><rect x="54" y="81" width="5" height="5" class="on"/><rect x="68" y="81" width="5" height="5" class="on"/><rect x="117" y="81" width="5" height="5" class="on"/><rect x="19" y="88" width="5" height="5" class="on"/><rect x="47" y="88" width="5" height="5" class="on"/><rect x="61" y="88" width="5" height="5" class="on"/><rect x="75" y="88" width="5" height="5" class="on"/><rect x="53" y="59" width="28" height="35" class="blk2"/><rect x="26" y="95" width="5" height="5" class="on"/><rect x="68" y="95" width="5" height="5" class="on"/><rect x="82" y="95" width="5" height="5" class="on"/><rect x="89" y="95" width="5" height="5" class="on"/><rect x="96" y="95" width="5" height="5" class="on"/><rect x="103" y="95" width="5" height="5" class="on"/><rect x="110" y="95" width="5" height="5" class="on"/><rect x="47" y="102" width="5" height="5" class="on"/><rect x="89" y="102" width="5" height="5" class="on"/><rect x="96" y="102" width="5" height="5" class="on"/><rect x="103" y="102" width="5" height="5" class="on"/><rect x="96" y="109" width="5" height="5" class="on"/><rect x="103" y="109" width="5" height="5" class="on"/><rect x="110" y="109" width="5" height="5" class="on"/><rect x="117" y="109" width="5" height="5" class="on"/><rect x="26" y="116" width="5" height="5" class="on"/><rect x="89" y="116" width="5" height="5" class="on"/><rect x="96" y="116" width="5" height="5" class="on"/><rect x="110" y="116" width="5" height="5" class="on"/><rect x="88" y="94" width="28" height="28" class="blk3"/><rect x="18" y="24" width="105" height="98" class="frame"/><text x="135" y="78" text-anchor="middle" class="op">→</text><text x="149" y="14" class="lbl">top genes</text><circle cx="153" cy="30.5" r="4" class="c0"/><text x="162" y="34" class="gene">0</text><text x="173" y="34" class="val-on">LDHB EEF1A1</text><circle cx="153" cy="60.5" r="4" class="c2"/><text x="162" y="64" class="gene">2</text><text x="173" y="64" class="val-on">LYZ S100A9</text><circle cx="153" cy="90.5" r="4" class="c3"/><text x="162" y="94" class="gene">3</text><text x="173" y="94" class="val-on">CD74 CD79A</text><text x="18" y="138" class="dim">9 ranked gene lists</text></svg>
+      <figcaption>Rows are grouped by cluster label, and each group is compared with all other cells, gene by gene. The output is a <b>ranked gene list per cluster</b> (the real top two for three of the nine clusters shown).</figcaption></figure>
   </div>
   <div class="fig fig-grid mk-grid">
     <div>
@@ -633,42 +740,106 @@ DotPlot(pbmc, features = c("IL7R", "CCR7", "CD14", "LYZ", "MS4A1",
 <section class="closing" id="end">
   <h2>The whole pipeline</h2>
   <div class="prose" style="margin-bottom:18px">
-    <p>About fifteen lines of code. Every default here is a choice (QC cutoffs, number of HVGs and PCs, <em>k</em>, resolution). Good practice is to vary them and keep the conclusions that survive. Common next steps: doublet detection (Scrublet, scDblFinder), ambient RNA removal (SoupX, CellBender), and batch integration across samples (Harmony, scVI). The <a href="https://www.sc-best-practices.org" target="_blank" rel="noopener">Single-cell Best Practices</a> book covers each in depth.</p>
+    <p>The core is about fifteen calls. The notebook below wraps them in cells and plots each result with scanpy's own <code>sc.pl</code> functions. <b>Copy all</b> keeps the <code># %%</code> cell markers, so VS Code and Jupytext open the script as a notebook; <b>Download .ipynb</b> gives you a ready Jupyter notebook.</p>
+    <p>Every default here is a choice (QC cutoffs, number of HVGs and PCs, <em>k</em>, resolution). Good practice is to vary them and keep the conclusions that survive. Common next steps: doublet detection (Scrublet, scDblFinder), ambient RNA removal (SoupX, CellBender), and batch integration across samples (Harmony, scVI). The <a href="https://www.sc-best-practices.org" target="_blank" rel="noopener">Single-cell Best Practices</a> book covers each in depth.</p>
   </div>
-  <details class="code" open style="margin-top:0"><summary>Full analysis</summary><div class="code-tabs"></div><pre data-py='import scanpy as sc
+  <ol class="shape-strip" aria-label="Shape of the data after each step">
+    <li><a href="#s1"><span>counts</span><b>2,700 × 13,714</b></a></li>
+    <li><a href="#s2"><span>after QC</span><b>2,638 × 13,714</b></a></li>
+    <li><a href="#s3"><span>normalized</span><b>2,638 × 13,714</b></a></li>
+    <li><a href="#s4"><span>HVGs</span><b>2,638 × 2,000</b></a></li>
+    <li><a href="#s5"><span>PCA scores</span><b>2,638 × 50</b></a></li>
+    <li><a href="#s6"><span>neighbor graph</span><b>2,638 × 2,638</b></a></li>
+    <li><a href="#s7"><span>UMAP</span><b>2,638 × 2</b></a></li>
+    <li><a href="#s8"><span>clusters</span><b>2,638 × 1</b></a></li>
+    <li><a href="#s9"><span>markers</span><b>9 gene lists</b></a></li>
+  </ol>
+  <details class="code nb" open style="margin-top:0"><summary>Full analysis as a notebook</summary><div class="code-tabs"></div><pre data-py='# %% Setup
+# pip install "scanpy[leiden]" scikit-misc    (scikit-misc is needed for the vst HVG method)
+import scanpy as sc
 
-adata = sc.datasets.pbmc3k()
+sc.settings.verbosity = 1
+sc.set_figure_params(dpi=90, frameon=False, figsize=(4, 4))
+
+# %% Load the data
+adata = sc.datasets.pbmc3k()                 # 2,700 cells × 32,738 genes, raw UMI counts
 sc.pp.filter_cells(adata, min_genes=200)
-sc.pp.filter_genes(adata, min_cells=3)
-adata.var["mt"] = adata.var_names.str.startswith("MT-")
-sc.pp.calculate_qc_metrics(adata, qc_vars=["mt"], inplace=True)
-adata = adata[(adata.obs.n_genes_by_counts &lt; 2500) &amp; (adata.obs.pct_counts_mt &lt; 5)].copy()
+sc.pp.filter_genes(adata, min_cells=3)       # 13,714 genes left
+adata
 
-adata.layers["counts"] = adata.X.copy()
+# %% Quality control
+adata.var["mt"] = adata.var_names.str.startswith("MT-")
+sc.pp.calculate_qc_metrics(adata, qc_vars=["mt"], percent_top=None, log1p=False, inplace=True)
+sc.pl.violin(adata, ["n_genes_by_counts", "total_counts", "pct_counts_mt"], jitter=0.4, multi_panel=True)
+sc.pl.scatter(adata, x="total_counts", y="n_genes_by_counts", color="pct_counts_mt")
+
+adata = adata[(adata.obs["n_genes_by_counts"] &lt; 2500) &amp; (adata.obs["pct_counts_mt"] &lt; 5)].copy()
+print(f"{adata.n_obs:,} cells kept")         # 2,638
+
+# %% Normalization and highly variable genes
+adata.layers["counts"] = adata.X.copy()      # vst needs the raw counts
 sc.pp.normalize_total(adata, target_sum=1e4)
 sc.pp.log1p(adata)
-adata.raw = adata
+adata.raw = adata                            # keep every gene for plots and markers
+
 sc.pp.highly_variable_genes(adata, flavor="seurat_v3", n_top_genes=2000, layer="counts")
-adata = adata[:, adata.var.highly_variable].copy()
+sc.pl.highly_variable_genes(adata, log=True)
+adata = adata[:, adata.var["highly_variable"]].copy()
+
+# %% Scaling and PCA
 sc.pp.scale(adata, max_value=10)
-sc.tl.pca(adata, svd_solver="arpack")
+sc.tl.pca(adata, n_comps=50, svd_solver="arpack")
+sc.pl.pca_variance_ratio(adata, n_pcs=50, log=True)
+sc.pl.pca(adata, color=["CST3", "NKG7", "PPBP"])
+
+# %% Neighbor graph, UMAP and clusters
 sc.pp.neighbors(adata, n_neighbors=15, n_pcs=10)
 sc.tl.umap(adata)
-sc.tl.leiden(adata, resolution=0.5, flavor="igraph", n_iterations=2)
-sc.tl.rank_genes_groups(adata, "leiden", method="wilcoxon")' data-r='library(Seurat)
+sc.tl.leiden(adata, resolution=0.5, flavor="igraph", n_iterations=2, directed=False)
+sc.pl.umap(adata, color="leiden", legend_loc="on data")   # cluster numbers can differ between versions
+sc.pl.umap(adata, color=["CD3E", "MS4A1", "CD14", "NKG7", "FCGR3A", "PPBP"], ncols=3)
 
+# %% Marker genes
+sc.tl.rank_genes_groups(adata, "leiden", method="wilcoxon")
+sc.pl.rank_genes_groups_dotplot(adata, n_genes=5)
+markers = sc.get.rank_genes_groups_df(adata, group=None)
+markers.groupby("group", observed=True).head(5)' data-r='# %% Setup
+library(Seurat)
+library(dplyr)
+library(patchwork)
+set.seed(0)
+
+# %% Load the data
 pbmc &lt;- CreateSeuratObject(Read10X("filtered_gene_bc_matrices/hg19/"),
-                           min.cells = 3, min.features = 200)
+                           project = "pbmc3k", min.cells = 3, min.features = 200)
+pbmc
+
+# %% Quality control
 pbmc[["percent.mt"]] &lt;- PercentageFeatureSet(pbmc, pattern = "^MT-")
+VlnPlot(pbmc, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 3)
+FeatureScatter(pbmc, "nCount_RNA", "nFeature_RNA")
 pbmc &lt;- subset(pbmc, nFeature_RNA &gt; 200 &amp; nFeature_RNA &lt; 2500 &amp; percent.mt &lt; 5)
+
+# %% Normalization and highly variable genes
 pbmc &lt;- NormalizeData(pbmc)
 pbmc &lt;- FindVariableFeatures(pbmc, selection.method = "vst", nfeatures = 2000)
+LabelPoints(VariableFeaturePlot(pbmc), points = head(VariableFeatures(pbmc), 10), repel = TRUE)
+
+# %% Scaling and PCA
 pbmc &lt;- ScaleData(pbmc)
 pbmc &lt;- RunPCA(pbmc)
+ElbowPlot(pbmc, ndims = 50) | FeaturePlot(pbmc, c("CST3", "NKG7"), reduction = "pca")
+
+# %% Neighbor graph, UMAP and clusters
 pbmc &lt;- FindNeighbors(pbmc, dims = 1:10)
-pbmc &lt;- FindClusters(pbmc, resolution = 0.5)
+pbmc &lt;- FindClusters(pbmc, resolution = 0.5)    # Louvain; algorithm = 4 for Leiden
 pbmc &lt;- RunUMAP(pbmc, dims = 1:10)
-markers &lt;- FindAllMarkers(pbmc, only.pos = TRUE)'></pre></details>
+DimPlot(pbmc, label = TRUE) | FeaturePlot(pbmc, c("MS4A1", "CD14", "NKG7", "PPBP"))
+
+# %% Marker genes
+markers &lt;- FindAllMarkers(pbmc, only.pos = TRUE)
+top &lt;- markers %&gt;% group_by(cluster) %&gt;% slice_max(avg_log2FC, n = 5)
+DotPlot(pbmc, features = unique(top$gene)) + RotatedAxis()'></pre></details>
   <p class="foot">Data: pbmc3k, peripheral blood mononuclear cells from a healthy donor (10x Genomics). The 2,638 cells passing standard QC were used; integer UMI counts were recovered exactly from the cellxgene example copy of the dataset. Analysis: scanpy 1.12 (vst HVGs via flavor="seurat_v3"), leidenalg and umap-learn, random seed 0. Every number and point on this page comes from that run. The droplet animation is a schematic, not data.</p>
 </section>
 </main>
@@ -885,14 +1056,87 @@ function seg(sel, cb) {
 }
 const pearson = (a, b) => { const n = a.length; let ma = 0, mb = 0; for (let i = 0; i < n; i++) { ma += a[i]; mb += b[i]; } ma /= n; mb /= n; let sab = 0, sa = 0, sb = 0; for (let i = 0; i < n; i++) { const x = a[i] - ma, y = b[i] - mb; sab += x * y; sa += x * x; sb += y * y; } return sab / Math.sqrt(sa * sb); };
 
-/* ---------------- code tabs ---------------- */
-$$("details.code").forEach(det => {
-  const pre = det.querySelector("pre"), tabs = det.querySelector(".code-tabs");
-  const hl = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/(^|\s)(#[^\n]*)/g, '$1<span class="c">$2</span>');
-  const show = k => { pre.innerHTML = hl(pre.dataset[k]); tabs.querySelectorAll("button").forEach(b => b.setAttribute("aria-selected", b.dataset.k === k)); };
-  [["py", "Scanpy (Python)"], ["r", "Seurat (R)"]].forEach(([k, l]) => { const b = document.createElement("button"); b.type = "button"; b.dataset.k = k; b.textContent = l; b.onclick = () => show(k); tabs.appendChild(b); });
-  show("py");
-});
+/* ---------------- code blocks: tabs, highlighting, copy, notebook view ---------------- */
+{
+  const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const TOK = /(#[^\n]*)|("(?:[^"\\\n]|\\.)*")|\b(import|from|def|return|for|in|if|is|not|None|True|False|library|function)\b/g;
+  const hl = s => {
+    let out = "", i = 0;
+    for (const m of s.matchAll(TOK)) {
+      out += esc(s.slice(i, m.index)) + `<span class="${m[1] ? "c" : m[2] ? "s" : "k"}">${esc(m[0])}</span>`;
+      i = m.index + m[0].length;
+    }
+    return out + esc(s.slice(i));
+  };
+  /* "# %% Title" lines split a script into notebook cells */
+  const cellsOf = src => src.split(/^# %% ?/m).filter(s => s.trim()).map(s => {
+    const nl = s.indexOf("\n");
+    return { title: s.slice(0, nl).trim(), code: s.slice(nl + 1).replace(/\s+$/, "") };
+  });
+  const lines = s => s.split("\n").map((l, i, a) => (i < a.length - 1 ? l + "\n" : l));
+  const toIpynb = cells => JSON.stringify({
+    nbformat: 4, nbformat_minor: 5,
+    metadata: { kernelspec: { name: "python3", display_name: "Python 3", language: "python" }, language_info: { name: "python" } },
+    cells: [{ cell_type: "markdown", id: "intro", metadata: {}, source: lines("# From counts to clusters: PBMC 3k\n\nThe full analysis from the Lesson 2 single-cell primer.") }]
+      .concat(cells.flatMap((c, i) => [
+        { cell_type: "markdown", id: `md${i}`, metadata: {}, source: [`## ${c.title}`] },
+        { cell_type: "code", id: `code${i}`, metadata: {}, execution_count: null, outputs: [], source: lines(c.code) }
+      ]))
+  }, null, 1);
+  const copyText = async (text, btn) => {
+    try { await navigator.clipboard.writeText(text); }
+    catch {
+      const ta = document.createElement("textarea");
+      ta.value = text; ta.style.cssText = "position:fixed;top:0;opacity:0";
+      document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove();
+    }
+    btn.textContent = "Copied ✓"; btn.classList.add("done");
+    clearTimeout(btn._t); btn._t = setTimeout(() => { btn.textContent = btn.dataset.label; btn.classList.remove("done"); }, 1400);
+  };
+  const save = (text, name, type) => {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  };
+
+  $$("details.code").forEach(det => {
+    const pre = det.querySelector("pre"), tabs = det.querySelector(".code-tabs"), nb = det.classList.contains("nb");
+    const bar = document.createElement("div"), acts = document.createElement("div");
+    bar.className = "code-bar"; acts.className = "code-actions";
+    tabs.before(bar); bar.append(tabs, acts);
+    const button = (label, fn) => {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "copy"; b.textContent = b.dataset.label = label; b.onclick = () => fn(b);
+      acts.appendChild(b); return b;
+    };
+    let cur = "py";
+    button(nb ? "Copy all" : "Copy", b => copyText(pre.dataset[cur], b));
+    const dl = nb && button("", () => cur === "py"
+      ? save(toIpynb(cellsOf(pre.dataset.py)), "pbmc3k_analysis.ipynb", "application/x-ipynb+json")
+      : save(pre.dataset.r + "\n", "pbmc3k_analysis.R", "text/plain"));
+    const view = nb && document.createElement("div");
+    if (nb) { view.className = "nb-cells"; pre.after(view); pre.hidden = true; }
+
+    const show = k => {
+      cur = k;
+      tabs.querySelectorAll("button").forEach(b => b.setAttribute("aria-selected", b.dataset.k === k));
+      if (!nb) { pre.innerHTML = hl(pre.dataset[k]); return; }
+      dl.textContent = dl.dataset.label = k === "py" ? "Download .ipynb" : "Download .R";
+      const cells = cellsOf(pre.dataset[k]);
+      view.innerHTML = cells.map((c, i) => `<div class="nb-cell"><div class="nb-head"><span class="nb-n">In [${i + 1}]</span>` +
+        `<span class="nb-title">${esc(c.title)}</span><button type="button" class="copy" data-label="Copy" data-i="${i}">Copy</button></div>` +
+        `<pre>${hl(c.code)}</pre></div>`).join("");
+      view.querySelectorAll(".nb-head .copy").forEach(b => { b.onclick = () => copyText(cells[+b.dataset.i].code, b); });
+    };
+    [["py", "Scanpy (Python)"], ["r", "Seurat (R)"]].forEach(([k, l]) => {
+      const b = document.createElement("button");
+      b.type = "button"; b.dataset.k = k; b.textContent = l; b.onclick = () => show(k);
+      tabs.appendChild(b);
+    });
+    show("py");
+  });
+}
 
 /* ---------------- schedule bar (same behaviour as lesson 1) ---------------- */
 const STEPS = ["Count matrix", "Quality control", "Normalization", "Feature selection", "Scaling & PCA", "Neighbor graph", "UMAP", "Clustering", "Marker genes"];
