@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Lesson 2 of Coding agents for computational biology: structured outputs for biology, starting from a single-cell primer.">
+<meta name="theme-color" content="#0a0c11">
+<style>[hidden]{display:none!important} body{margin:0} img{max-width:100%}</style>
+<title>Lesson 2 · Structured Outputs</title>
+<link rel="icon" href="../favicon.ico" sizes="32x32">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<link rel="manifest" href="../site.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Palette: fluorescence microscopy. A dark field like an unlit slide; DAPI blue carries structure,
+   GFP green labels sections, mCherry pink marks what the model generates. One deliberate dark theme. */
+:root{
+  color-scheme:dark;
+  --bg:#0a0c11; --surface:#11141b; --sunk:#181c26; --ink:#e9ecf3; --muted:#8e97ab; --line:#242a38;
+  --acc:#8b9bff; --on-acc:#0a0c11; --acc-soft:rgba(139,155,255,.15);
+  --pop:#ff6f91; --pop-soft:rgba(255,111,145,.15);
+  --gfp:#4fe0a5; --gfp-soft:rgba(79,224,165,.12);
+  --display:"Bricolage Grotesque","Helvetica Neue",Arial,sans-serif;
+  --body:"Instrument Sans","Helvetica Neue",Arial,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:18px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1040px;margin:0 auto;padding-inline:20px}
+.prose{max-width:68ch;display:flex;flex-direction:column;gap:14px}
+h1,h2,h3,h4{font-family:var(--display);line-height:1.12;text-wrap:balance;margin:0}
+h1{font-size:clamp(2.1rem,5.4vw,3.5rem);font-weight:800;letter-spacing:-.025em}
+h2{font-size:clamp(1.6rem,3.4vw,2.25rem);font-weight:700;letter-spacing:-.015em}
+h3{font-size:1.3rem;font-weight:700}
+p{margin:0}
+a{color:var(--acc)}
+:not(pre)>code{font-family:var(--mono);font-size:.84em;background:var(--sunk);padding:.08em .35em;border-radius:5px}
+:focus-visible{outline:2px solid var(--pop);outline-offset:2px}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--pop)}
+.note{font-size:.93rem;color:var(--muted)}
+.lede{font-size:1.15rem}
+
+/* schedule bar */
+.sched{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);border-bottom:1px solid var(--line)}
+.sched .wrap{display:flex;align-items:center;gap:14px;padding-block:8px}
+.sched-title{font-family:var(--display);font-weight:700;font-size:14px;white-space:nowrap}
+.sched-bar{position:relative;flex:1;display:flex;gap:6px;min-width:0;overflow-x:auto;scrollbar-width:none;padding-block:2px}
+.sched-bar::-webkit-scrollbar{display:none}
+.sched-bar a{flex:none;text-decoration:none;color:var(--muted);background:var(--sunk);padding:5px 11px;border-radius:999px;font:600 12px/1.3 var(--mono);white-space:nowrap;transition:background .25s,color .25s}
+.sched-bar a:hover{color:var(--ink)}
+.sched-bar a.on{background:var(--acc);color:var(--on-acc)}
+@media (max-width:720px){.sched-title{display:none}}
+
+/* sections */
+.hero{padding-block:44px 52px}
+.hero-meta{display:flex;flex-wrap:wrap;gap:8px 22px;font-family:var(--mono);font-size:13px;color:var(--muted);margin-top:18px}
+.hero-meta b{color:var(--ink);font-weight:600}
+section.part{padding-block:60px;border-top:1px solid var(--line);scroll-margin-top:60px}
+.part-head{display:flex;flex-direction:column;gap:10px;margin-bottom:20px}
+.btn{font:600 15px/1 var(--display);padding:10px 16px;border-radius:999px;border:1.5px solid var(--acc);background:var(--acc);color:var(--on-acc);cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:22px}
+@media (max-width:720px){.two{grid-template-columns:minmax(0,1fr)}}
+.panel{border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.tlabel{font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:600 12px var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+td code{font-family:var(--mono);font-size:13px}
+.tablebox{overflow-x:auto}
+
+/* cards (same as the course home page) */
+.card{display:flex;flex-direction:column;gap:12px;padding:20px 22px;border:1px solid var(--line);border-radius:14px;background:var(--surface);min-width:0;text-decoration:none;color:inherit;transition:border-color .2s,transform .2s,box-shadow .2s}
+a.card:hover{border-color:var(--acc);transform:translateY(-2px)}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap}
+.card p{font-size:16.5px}
+.pill{font:600 11.5px/1 var(--mono);padding:5px 9px;border-radius:999px;white-space:nowrap;text-transform:uppercase;letter-spacing:.05em}
+.pill.live{background:var(--gfp-soft);color:var(--gfp)}
+.pill.later{background:var(--sunk);color:var(--muted)}
+.topics{display:flex;flex-wrap:wrap;gap:6px}
+.topics span{font:12.5px/1.2 var(--mono);padding:4px 8px;border-radius:6px;background:var(--sunk)}
+.open{font:600 15px/1 var(--display);color:var(--acc);display:inline-flex;align-items:center;gap:6px}
+.open span{transition:transform .2s}
+a.card:hover .open span{transform:translateX(3px)}
+.build{font-size:15px;color:var(--muted)}
+.build b{font-family:var(--display);color:var(--ink);font-weight:600}
+.primer{margin-top:8px;padding:24px 26px}
+.primer h3{font-size:clamp(1.4rem,3vw,1.8rem);font-weight:800;letter-spacing:-.02em}
+.steps9{display:flex;flex-wrap:wrap;gap:6px;list-style:none;margin:0;padding:0;counter-reset:st}
+.steps9 li{counter-increment:st;font:12.5px/1.2 var(--mono);padding:5px 9px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.03)}
+.steps9 li::before{content:counter(st,decimal-leading-zero) " ";color:var(--acc)}
+.soon{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+@media (max-width:720px){.soon{grid-template-columns:minmax(0,1fr)}}
+.soon .card{background:transparent;border-style:dashed;gap:9px}
+.soon h3{font-size:1.15rem}
+.soon .card p{font-size:15.5px;color:var(--muted)}
+footer{border-top:1px solid var(--line);padding-block:32px 48px;font-family:var(--mono);font-size:13px;color:var(--muted)}
+
+/* dark identity layer */
+body{background-color:var(--bg);background-image:radial-gradient(1100px 520px at 12% -8%,rgba(139,155,255,.14),transparent 62%),radial-gradient(800px 460px at 96% -4%,rgba(79,224,165,.08),transparent 60%);background-repeat:no-repeat;font-size:17px;line-height:1.65}
+h1{font-weight:800;letter-spacing:-.035em}
+h2{letter-spacing:-.02em}
+.eyebrow{color:var(--gfp)}
+.eyebrow::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--gfp);box-shadow:0 0 10px var(--gfp);margin-right:9px;vertical-align:2px}
+.sched{background:rgba(10,12,17,.96)}
+.sched-bar a{background:rgba(255,255,255,.04)}
+.sched-bar a.on{box-shadow:0 0 18px -4px var(--acc)}
+.panel{background:rgba(255,255,255,.02)}
+.card{background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,0) 120px),var(--surface);box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+a.card:hover{border-color:var(--acc);box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 0 0 1px var(--acc),0 18px 40px -18px rgba(139,155,255,.45)}
+.primer{background:radial-gradient(600px 240px at 100% 0%,rgba(79,224,165,.09),transparent 70%),linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,0) 120px),var(--surface)}
+.btn:hover{box-shadow:0 0 22px -4px var(--acc)}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<nav class="sched" aria-label="Lesson schedule">
+  <div class="wrap">
+    <a class="sched-title" href="../index.html" style="color:inherit;text-decoration:none">← Course · Lesson 2</a>
+    <div class="sched-bar">
+      <a href="#task">The task</a>
+      <a href="#primer">Single-cell primer</a>
+      <a href="#coming">Coming up</a>
+    </div>
+  </div>
+</nav>
+
+<main>
+<header class="hero">
+  <div class="wrap">
+    <div class="prose">
+      <span class="eyebrow">Coding agents for computational biology · Lesson 2 of 5</span>
+      <h1>Structured outputs for biology</h1>
+      <p class="lede">Lesson 1 ended with a problem: a model answers in sentences, and a pipeline cannot use sentences. In this lesson the model fills in a fixed format that code can check. The task is a real one: naming the cell clusters of the PBMC 3k dataset.</p>
+    </div>
+    <div class="hero-meta">
+      <span><b>90 min</b></span>
+      <span>Needs <b>LM Studio</b> and a <b>tool-capable 7B+ model</b></span>
+      <span>Data: <b>PBMC 3k</b></span>
+      <span>Previous: <a href="../lesson1/index.html">How LLMs work</a></span>
+    </div>
+  </div>
+</header>
+
+<section class="part" id="task">
+  <div class="wrap">
+    <div class="part-head prose">
+      <span class="eyebrow">The task</span>
+      <h2>Give each cluster a name</h2>
+      <p>A single-cell analysis groups thousands of cells into clusters and lists the genes that set each cluster apart. It does not say what the clusters are. A biologist reads the marker genes and writes down a cell type. That step is called annotation, and it is the job we will hand to a language model.</p>
+      <p>For the answers to be useful, every cluster has to come back with the same fields, filled in the same way, so that we can check them against known labels.</p>
+    </div>
+    <div class="two">
+      <div class="panel"><span class="tlabel">What the model sees</span>
+        <p>Cluster 2, top markers from the primer: <code>LYZ</code>, <code>S100A9</code>, <code>S100A8</code>, <code>TYROBP</code>, <code>FTL</code>, <code>CST3</code></p>
+      </div>
+      <div class="panel"><span class="tlabel">What it has to return</span>
+        <div class="tablebox"><table>
+          <thead><tr><th>cluster_id</th><th>cell_type</th><th>confidence</th><th>supporting_markers</th></tr></thead>
+          <tbody><tr><td><code>2</code></td><td><code>CD14+ monocyte</code></td><td><code>0.9</code></td><td><code>LYZ, S100A8, S100A9</code></td></tr></tbody>
+        </table></div>
+      </div>
+    </div>
+    <div class="prose" style="margin-top:22px">
+      <p>To judge whether the model got it right, you need to know where those clusters and marker lists came from, and which choices along the way could change them. That is what the primer below covers.</p>
+    </div>
+  </div>
+</section>
+
+<section class="part" id="primer">
+  <div class="wrap">
+    <div class="part-head prose">
+      <span class="eyebrow">Before the LLMs</span>
+      <h2>Single-cell data in nine steps</h2>
+      <p>If you have run a scanpy or Seurat workflow before, skim it. If not, work through it before going on: the rest of the lesson assumes you know what a cluster and a marker gene are.</p>
+    </div>
+    <a class="card primer" href="single-cell/index.html">
+      <div class="card-top"><h3>From counts to clusters</h3><span class="pill live">Interactive primer</span></div>
+      <p>How a droplet experiment becomes a count matrix, and how quality control, normalization, PCA, a neighbor graph, UMAP and Leiden clustering turn it into groups of cells with marker genes. Every figure is drawn from a real PBMC 3k analysis, and each step comes with its scanpy and Seurat code.</p>
+      <ol class="steps9">
+        <li>Count matrix</li><li>Quality control</li><li>Normalization</li><li>Feature selection</li><li>Scaling &amp; PCA</li><li>Neighbor graph</li><li>UMAP</li><li>Clustering</li><li>Marker genes</li>
+      </ol>
+      <p class="build"><b>You leave with:</b> nine PBMC 3k clusters, their marker genes, and an open question: what are they?</p>
+      <span class="open">Open the primer <span aria-hidden="true">→</span></span>
+    </a>
+  </div>
+</section>
+
+<section class="part" id="coming">
+  <div class="wrap">
+    <div class="part-head prose">
+      <span class="eyebrow">Coming up in this lesson</span>
+      <h2>From marker lists to checked answers</h2>
+      <p>These parts are still being written.</p>
+    </div>
+    <ul class="soon">
+      <li class="card"><div class="card-top"><h3>Constrain the output</h3><span class="pill later">Coming soon</span></div><p>Describe the answer with a JSON schema and make the local model follow it.</p><div class="topics"><span>JSON schema</span><span>LM Studio API</span></div></li>
+      <li class="card"><div class="card-top"><h3>Validate what comes back</h3><span class="pill later">Coming soon</span></div><p>Parse the reply into Pydantic models and catch the cases where it is wrong.</p><div class="topics"><span>Pydantic</span><span>retries</span></div></li>
+      <li class="card"><div class="card-top"><h3>Score the annotator</h3><span class="pill later">Coming soon</span></div><p>Annotate every PBMC 3k cluster and compare the answers with the known labels.</p><div class="topics"><span>cell type annotation</span><span>evaluation</span></div></li>
+      <li class="card"><div class="card-top"><h3>Let the model call tools</h3><span class="pill later">Coming soon</span></div><p>Give the model a function it can call to look up more data, the first step towards an agent.</p><div class="topics"><span>tool calls</span><span>metadata cleanup</span></div></li>
+    </ul>
+  </div>
+</section>
+</main>
+
+<footer><div class="wrap"><a href="../index.html">← Back to all lessons</a> · Lesson 2 of 5 · Coding agents for computational biology · Previous: <a href="../lesson1/index.html">How LLMs work</a></div></footer>
+
+<script>
+(() => {
+  const links = [...document.querySelectorAll('.sched-bar a')];
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) links.forEach(a => a.classList.toggle('on', a.getAttribute('href') === '#' + e.target.id)); });
+  }, { rootMargin: '-35% 0px -60% 0px' });
+  document.querySelectorAll('section.part').forEach(s => io.observe(s));
+})();
+</script>
+</body>
+</html>
