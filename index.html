@@ -166,9 +166,9 @@ a.card:hover{border-color:var(--acc);box-shadow:inset 0 1px 0 rgba(255,255,255,.
         <span class="num" aria-hidden="true">2</span>
         <a class="card" href="lesson2/index.html">
           <div class="card-top"><h3>Structured outputs for biology</h3><span class="pill live">Open</span></div>
-          <p>Start with an interactive primer on single-cell data, from count matrix to clusters. Then constrain the model with a JSON schema, validate what comes back, and score it against known answers. Ends with tool calling.</p>
-          <div class="topics"><span>scRNA-seq primer</span><span>JSON schema</span><span>Pydantic</span><span>cell type annotation</span><span>metadata cleanup</span><span>tool calls</span></div>
-          <p class="build"><b>You build:</b> a cluster annotator scored against PBMC 3k labels.</p>
+          <p>Start with an interactive primer on single-cell data, from count matrix to clusters. Then send each cluster's markers to a local model, force the reply into a JSON schema, and check it with Pydantic.</p>
+          <div class="topics"><span>scRNA-seq primer</span><span>cell type annotation</span><span>LM Studio</span><span>JSON schema</span><span>Pydantic</span></div>
+          <p class="build"><b>You build:</b> a local-LLM cluster annotator for PBMC 3k with validated output.</p>
           <span class="open">Open lesson 2 <span aria-hidden="true">→</span></span>
         </a>
       </li>
@@ -223,7 +223,7 @@ a.card:hover{border-color:var(--acc);box-shadow:inset 0 1px 0 rgba(255,255,255,.
     <ul class="setup">
       <li><span>LM Studio 0.4.1 or later, with one small model downloaded <span class="when">· lesson 1</span></span></li>
       <li><span>Python 3.11 or later with <code>uv</code> <span class="when">· lesson 1</span></span></li>
-      <li><span>A tool-capable model of 7B parameters or more <span class="when">· lessons 2–3</span></span></li>
+      <li><span>A model of 7B parameters or more, tool-capable for lesson 3 <span class="when">· lessons 2–3</span></span></li>
       <li><span>Docker, checked with <code>docker run hello-world</code> <span class="when">· lesson 3</span></span></li>
       <li><span>git and a GitHub account <span class="when">· lessons 3–5</span></span></li>
       <li><span>Node.js for the web viewer <span class="when">· lesson 5</span></span></li>

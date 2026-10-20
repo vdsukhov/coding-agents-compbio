@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="Lesson 2 of Coding agents for computational biology: structured outputs for biology, starting from a single-cell primer.">
+<meta name="description" content="Lesson 2 of Coding agents for computational biology: structured outputs for biology. Name single-cell clusters with a local LLM, force the reply into a JSON schema and check it with Pydantic.">
 <meta name="theme-color" content="#0a0c11">
 <style>[hidden]{display:none!important} body{margin:0} img{max-width:100%}</style>
 <title>Lesson 2 · Structured Outputs</title>
@@ -78,9 +78,6 @@ a.card:hover{border-color:var(--acc);transform:translateY(-2px)}
 .card p{font-size:16.5px}
 .pill{font:600 11.5px/1 var(--mono);padding:5px 9px;border-radius:999px;white-space:nowrap;text-transform:uppercase;letter-spacing:.05em}
 .pill.live{background:var(--gfp-soft);color:var(--gfp)}
-.pill.later{background:var(--sunk);color:var(--muted)}
-.topics{display:flex;flex-wrap:wrap;gap:6px}
-.topics span{font:12.5px/1.2 var(--mono);padding:4px 8px;border-radius:6px;background:var(--sunk)}
 .open{font:600 15px/1 var(--display);color:var(--acc);display:inline-flex;align-items:center;gap:6px}
 .open span{transition:transform .2s}
 a.card:hover .open span{transform:translateX(3px)}
@@ -91,12 +88,56 @@ a.card:hover .open span{transform:translateX(3px)}
 .steps9{display:flex;flex-wrap:wrap;gap:6px;list-style:none;margin:0;padding:0;counter-reset:st}
 .steps9 li{counter-increment:st;font:12.5px/1.2 var(--mono);padding:5px 9px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.03)}
 .steps9 li::before{content:counter(st,decimal-leading-zero) " ";color:var(--acc)}
-.soon{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
-@media (max-width:720px){.soon{grid-template-columns:minmax(0,1fr)}}
-.soon .card{background:transparent;border-style:dashed;gap:9px}
-.soon h3{font-size:1.15rem}
-.soon .card p{font-size:15.5px;color:var(--muted)}
 footer{border-top:1px solid var(--line);padding-block:32px 48px;font-family:var(--mono);font-size:13px;color:var(--muted)}
+
+/* the annotator: pipeline, setup steps, exchanges */
+.flow{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;counter-reset:fl}
+@media (max-width:720px){.flow{grid-template-columns:minmax(0,1fr)}}
+.flow li{counter-increment:fl;display:flex;flex-direction:column;gap:8px;padding:18px 20px;border:1px solid var(--line);border-radius:14px;background:var(--surface);min-width:0}
+.flow-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.flow-top::before{content:counter(fl,decimal-leading-zero);font:600 12px var(--mono);color:var(--acc)}
+.flow li.llm .flow-top::before{color:var(--pop)}
+.flow .stage{font:700 1.2rem/1.2 var(--display)}
+.flow .fn{font:13px var(--mono);color:var(--muted)}
+.flow p{font-size:15.5px}
+.chip{font:600 11px/1 var(--mono);padding:4px 8px;border-radius:999px;text-transform:uppercase;letter-spacing:.05em;background:var(--acc-soft);color:var(--acc)}
+.chip.llm{background:var(--pop-soft);color:var(--pop)}
+.setup{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;counter-reset:su}
+@media (max-width:720px){.setup{grid-template-columns:minmax(0,1fr)}}
+.setup li{counter-increment:su;display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 14px;padding:16px 18px;border:1px solid var(--line);border-radius:12px}
+.setup li::before{content:counter(su);grid-row:span 2;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--acc-soft);border:1.5px solid var(--acc);color:var(--acc);font:700 14px/1 var(--display)}
+.setup b{font-family:var(--display);font-weight:700}
+.setup span{font-size:15.5px;color:var(--muted)}
+.mono-box{font-family:var(--mono);font-size:13.5px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere;background:#0d1016;border:1px solid var(--line);border-radius:8px;padding:12px;margin:0}
+.panel.reply{border-color:rgba(255,111,145,.4)}
+.panel.reply .tlabel,.gen{color:var(--pop)}
+.panel.pass .tlabel{color:var(--gfp)}
+.why{margin:20px 0 0;padding-left:1.2em;display:flex;flex-direction:column;gap:10px;max-width:68ch}
+.why strong{font-family:var(--display)}
+.sub{margin-top:36px;display:flex;flex-direction:column;gap:10px;max-width:68ch}
+.caption{margin-top:10px}
+.callout{max-width:68ch;margin-top:22px;border-left:3px solid var(--acc);background:var(--acc-soft);border-radius:0 12px 12px 0;padding:12px 16px;display:flex;flex-direction:column;gap:4px}
+.callout .lbl{font:600 11.5px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--acc)}
+.callout.warn{border-color:var(--pop);background:var(--pop-soft)}
+.callout.warn .lbl{color:var(--pop)}
+.conf,.effort{font:600 11px/1 var(--mono);padding:4px 8px;border-radius:999px;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;display:inline-block}
+.conf.high,.effort.e1{background:var(--gfp-soft);color:var(--gfp)}
+.conf.medium,.effort.e2{background:var(--acc-soft);color:var(--acc)}
+.conf.low,.effort.e3{background:var(--pop-soft);color:var(--pop)}
+.wide{min-width:680px}
+td.num{font-family:var(--mono);font-size:13px;font-variant-numeric:tabular-nums}
+.ideas td:first-child{font-family:var(--display);font-weight:600;white-space:nowrap}
+.ideas .effort{margin-top:6px}
+
+/* code (same as lesson 1) */
+.codebox{position:relative;min-width:0;margin-top:20px}
+.codebox pre{margin:0;background:var(--sunk);border:1px solid var(--line);border-radius:10px;padding:34px 16px 16px;overflow-x:auto;font:13.5px/1.6 var(--mono);color:var(--ink)}
+.codebox .fname{position:absolute;top:9px;left:16px;right:72px;font:11px var(--mono);color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.codebox .fname b{color:var(--ink);font-weight:600}
+.copy{position:absolute;top:6px;right:6px;font:600 12px/1 var(--display);padding:6px 10px;border-radius:6px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+pre .c{color:var(--muted)}
+pre .s{color:#8fdcb9}
+pre .k{color:#aab5ff}
 
 /* dark identity layer */
 body{background-color:var(--bg);background-image:radial-gradient(1100px 520px at 12% -8%,rgba(139,155,255,.14),transparent 62%),radial-gradient(800px 460px at 96% -4%,rgba(79,224,165,.08),transparent 60%);background-repeat:no-repeat;font-size:17px;line-height:1.65}
@@ -108,9 +149,12 @@ h2{letter-spacing:-.02em}
 .sched-bar a{background:rgba(255,255,255,.04)}
 .sched-bar a.on{box-shadow:0 0 18px -4px var(--acc)}
 .panel{background:rgba(255,255,255,.02)}
-.card{background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,0) 120px),var(--surface);box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+.card,.flow li{background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,0) 120px),var(--surface);box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+.flow li.llm{border-color:rgba(255,111,145,.4);background:radial-gradient(420px 180px at 100% 0%,rgba(255,111,145,.1),transparent 70%),var(--surface)}
 a.card:hover{border-color:var(--acc);box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 0 0 1px var(--acc),0 18px 40px -18px rgba(139,155,255,.45)}
 .primer{background:radial-gradient(600px 240px at 100% 0%,rgba(79,224,165,.09),transparent 70%),linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,0) 120px),var(--surface)}
+.setup li{background:rgba(255,255,255,.02)}
+.codebox pre{background:#0d1016}
 .btn:hover{box-shadow:0 0 22px -4px var(--acc)}
 @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -123,7 +167,13 @@ a.card:hover{border-color:var(--acc);box-shadow:inset 0 1px 0 rgba(255,255,255,.
     <div class="sched-bar">
       <a href="#task">The task</a>
       <a href="#primer">Single-cell primer</a>
-      <a href="#coming">Coming up</a>
+      <a href="#how">How it works</a>
+      <a href="#setup">Setup</a>
+      <a href="#code">The code</a>
+      <a href="#run">Run it</a>
+      <a href="#json">JSON schema</a>
+      <a href="#pydantic">Pydantic</a>
+      <a href="#further">Going further</a>
     </div>
   </div>
 </nav>
@@ -138,7 +188,8 @@ a.card:hover{border-color:var(--acc);box-shadow:inset 0 1px 0 rgba(255,255,255,.
     </div>
     <div class="hero-meta">
       <span><b>90 min</b></span>
-      <span>Needs <b>LM Studio</b> and a <b>tool-capable 7B+ model</b></span>
+      <span>Needs <b>LM Studio</b> and an <b>instruction-tuned 7B+ model</b></span>
+      <span>Python: <b>scanpy</b>, <b>openai</b>, <b>pydantic</b></span>
       <span>Data: <b>PBMC 3k</b></span>
       <span>Previous: <a href="../lesson1/index.html">How LLMs work</a></span>
     </div>
@@ -151,16 +202,16 @@ a.card:hover{border-color:var(--acc);box-shadow:inset 0 1px 0 rgba(255,255,255,.
       <span class="eyebrow">The task</span>
       <h2>Give each cluster a name</h2>
       <p>A single-cell analysis groups thousands of cells into clusters and lists the genes that set each cluster apart. It does not say what the clusters are. A biologist reads the marker genes and writes down a cell type. That step is called annotation, and it is the job we will hand to a language model.</p>
-      <p>For the answers to be useful, every cluster has to come back with the same fields, filled in the same way, so that we can check them against known labels.</p>
+      <p>For the answers to be useful, every cluster has to come back with the same fields, filled in the same way, so that code can read them and check them.</p>
     </div>
     <div class="two">
       <div class="panel"><span class="tlabel">What the model sees</span>
-        <p>Cluster 2, top markers from the primer: <code>LYZ</code>, <code>S100A9</code>, <code>S100A8</code>, <code>TYROBP</code>, <code>FTL</code>, <code>CST3</code></p>
+        <p>All nine clusters from the primer with their top markers, for example cluster 2: <code>LYZ</code>, <code>S100A9</code>, <code>S100A8</code>, <code>TYROBP</code>, <code>FTL</code>, <code>CST3</code></p>
       </div>
-      <div class="panel"><span class="tlabel">What it has to return</span>
+      <div class="panel"><span class="tlabel">What it has to return, one row per cluster</span>
         <div class="tablebox"><table>
-          <thead><tr><th>cluster_id</th><th>cell_type</th><th>confidence</th><th>supporting_markers</th></tr></thead>
-          <tbody><tr><td><code>2</code></td><td><code>CD14+ monocyte</code></td><td><code>0.9</code></td><td><code>LYZ, S100A8, S100A9</code></td></tr></tbody>
+          <thead><tr><th>cluster</th><th>cell_type</th><th>confidence</th><th>reason</th></tr></thead>
+          <tbody><tr><td><code>2</code></td><td><code>classical monocyte</code></td><td><code>high</code></td><td>LYZ, S100A8/9 and FCN1 are hallmark classical monocyte genes.</td></tr></tbody>
         </table></div>
       </div>
     </div>
@@ -189,32 +240,409 @@ a.card:hover{border-color:var(--acc);box-shadow:inset 0 1px 0 rgba(255,255,255,.
   </div>
 </section>
 
-<section class="part" id="coming">
+<section class="part" id="how">
   <div class="wrap">
     <div class="part-head prose">
-      <span class="eyebrow">Coming up in this lesson</span>
-      <h2>From marker lists to checked answers</h2>
-      <p>These parts are still being written.</p>
+      <span class="eyebrow">After the primer</span>
+      <h2>Name the clusters with a local LLM</h2>
+      <p>The primer left you with an <code>adata</code> object: 2,638 cells in nine Leiden clusters, and a ranked marker list for each one. Now we answer its open question. A short Python file sends the markers of all nine clusters to a model running on your own computer in LM Studio, in one request, and gets back a cell type, a confidence level and a one-sentence reason for each.</p>
     </div>
-    <ul class="soon">
-      <li class="card"><div class="card-top"><h3>Constrain the output</h3><span class="pill later">Coming soon</span></div><p>Describe the answer with a JSON schema and make the local model follow it.</p><div class="topics"><span>JSON schema</span><span>LM Studio API</span></div></li>
-      <li class="card"><div class="card-top"><h3>Validate what comes back</h3><span class="pill later">Coming soon</span></div><p>Parse the reply into Pydantic models and catch the cases where it is wrong.</p><div class="topics"><span>Pydantic</span><span>retries</span></div></li>
-      <li class="card"><div class="card-top"><h3>Score the annotator</h3><span class="pill later">Coming soon</span></div><p>Annotate every PBMC 3k cluster and compare the answers with the known labels.</p><div class="topics"><span>cell type annotation</span><span>evaluation</span></div></li>
-      <li class="card"><div class="card-top"><h3>Let the model call tools</h3><span class="pill later">Coming soon</span></div><p>Give the model a function it can call to look up more data, the first step towards an agent.</p><div class="topics"><span>tool calls</span><span>metadata cleanup</span></div></li>
+    <ol class="flow">
+      <li><div class="flow-top"><span class="chip">scanpy</span></div><span class="stage">Find markers</span><span class="fn">get_markers()</span><p>Ranks the genes that set each cluster apart and keeps the top 15, as in step 09 of the primer.</p></li>
+      <li class="llm"><div class="flow-top"><span class="chip llm">LLM</span></div><span class="stage">Ask the model</span><span class="fn">ask_llm()</span><p>Sends every cluster's genes, the tissue and the species to LM Studio in one prompt and reads back one JSON answer.</p></li>
+      <li><div class="flow-top"><span class="chip">pandas</span></div><span class="stage">Label cells</span><span class="fn">annotate()</span><p>Matches each answer to its cluster, marks any skipped cluster as unknown and writes the names into <code>adata.obs</code>.</p></li>
+    </ol>
+    <div class="prose" style="margin-top:26px"><p>The model sees exactly this, and answers in the format we asked for:</p></div>
+    <div class="two">
+      <div class="panel"><span class="tlabel">Prompt</span>
+<pre class="mono-box">You are an expert in single-cell biology.
+Tissue: PBMC. Species: human.
+These are the clusters of one dataset, each with its top marker genes, most specific first:
+Cluster 0: LDHB, EEF1A1, MALAT1, TPT1, CD3D, NPM1, CCR7, CD3E, ...
+Cluster 1: IL32, LTB, CD3D, LDHB, IL7R, TPT1, CD3E, CD2, ...
+Cluster 2: LYZ, S100A9, S100A8, TYROBP, FTL, CST3, FCN1, LGALS2, ...
+...
+Cluster 8: PF4, GNG11, SDPR, PPBP, NRGN, GPX1, SPARC, TPM4, ...
+
+Name the most likely cell type of every cluster. Reply with JSON only, one entry per cluster, like this:
+{"clusters": [{"cluster": "0", "cell_type": "...", "confidence": "high, medium or low", "reason": "one short sentence"}, ...]}</pre>
+      </div>
+      <div class="panel reply"><span class="tlabel">Model reply</span>
+<pre class="mono-box"><span class="gen">{"clusters": [
+  {"cluster": "0",
+   "cell_type": "naive CD4 T cell",
+   "confidence": "high",
+   "reason": "CCR7, LDHB and CD3D/CD3E mark
+     naive T cells."},
+  ...
+  {"cluster": "2",
+   "cell_type": "classical monocyte",
+   "confidence": "high",
+   "reason": "LYZ, S100A8/9 and FCN1 are hallmark
+     classical monocyte genes."},
+  ...
+]}</span></pre>
+      </div>
+    </div>
+    <p class="note caption">Prompt and reply shortened with “...”. The reply is illustrative; its exact wording varies between models.</p>
+  </div>
+</section>
+
+<section class="part" id="setup">
+  <div class="wrap">
+    <div class="part-head prose">
+      <span class="eyebrow">Setup</span>
+      <h2>Before you start</h2>
+      <p>This is the same LM Studio setup as in <a href="../lesson1/index.html#api">Lesson 1</a>. If your server from there still runs, only step 4 is new.</p>
+    </div>
+    <ol class="setup">
+      <li><b>Load a model in LM Studio</b><span>Any instruction-tuned model of 7B parameters or more, for example from the Qwen, Llama, Gemma or Mistral families. Smaller models often ignore the JSON format.</span></li>
+      <li><b>Start the local server</b><span>In the Developer tab, press Start server. It listens on <code>http://localhost:1234</code>.</span></li>
+      <li><b>Copy the model name</b><span>Paste it into <code>MODEL</code> at the top of the file, exactly as LM Studio shows it.</span></li>
+      <li><b>Install the packages</b><span><code>pip install scanpy openai</code>. The <code>openai</code> package only talks to your local server; nothing is sent to OpenAI. It also installs <code>pydantic</code>, which we use at the end.</span></li>
+    </ol>
+  </div>
+</section>
+
+<section class="part" id="code">
+  <div class="wrap">
+    <div class="part-head prose">
+      <span class="eyebrow">The code</span>
+      <h2>One file, three functions</h2>
+      <p>Save this as <code>simple_anno.py</code> next to your notebook. Read it top to bottom: settings, the prompt, then the three functions in the order they run. The model is called once for the whole dataset, not once per cluster.</p>
+    </div>
+    <div class="codebox"><span class="fname"><b>simple_anno.py</b> · 61 lines</span><button class="copy" type="button">Copy</button><pre class="py">"""simple_anno.py - name scanpy clusters with a local LLM served by LM Studio."""
+import json
+import re
+
+import pandas as pd
+import scanpy as sc
+from openai import OpenAI
+
+# LM Studio serves an OpenAI-compatible API on your own computer.
+client = OpenAI(base_url="http://localhost:1234/v1", api_key="lm-studio")
+MODEL = "qwen2.5-7b-instruct"  # copy the model name shown in LM Studio
+
+PROMPT = """You are an expert in single-cell biology.
+Tissue: {tissue}. Species: {species}.
+These are the clusters of one dataset, each with its top marker genes, most specific first:
+{clusters}
+
+Name the most likely cell type of every cluster. Reply with JSON only, one entry per cluster, like this:
+{{"clusters": [{{"cluster": "0", "cell_type": "...", "confidence": "high, medium or low", "reason": "one short sentence"}}, ...]}}"""
+
+MISSING = {"cell_type": "unknown", "confidence": "low", "reason": "no answer for this cluster"}
+
+
+def get_markers(adata, groupby="leiden", n_genes=15):
+    """Return {cluster: [top marker genes]} using scanpy's differential expression."""
+    sc.tl.rank_genes_groups(adata, groupby, method="wilcoxon")
+    df = sc.get.rank_genes_groups_df(adata, group=None)
+    df = df[~df["names"].str.startswith(("MT-", "RPL", "RPS"))]  # skip mito/ribosomal genes
+    return {str(c): g["names"].head(n_genes).tolist() for c, g in df.groupby("group", observed=True)}
+
+
+def ask_llm(markers, tissue="unknown", species="human"):
+    """Ask the local LLM to name every cluster in one request; return a list of answers."""
+    clusters = "\n".join(f"Cluster {c}: {', '.join(genes)}" for c, genes in markers.items())
+    prompt = PROMPT.format(tissue=tissue, species=species, clusters=clusters)
+    response = client.chat.completions.create(
+        model=MODEL,
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.1,  # low = more consistent answers
+    )
+    text = response.choices[0].message.content
+    text = re.sub(r"&lt;think&gt;.*?&lt;/think&gt;", "", text, flags=re.DOTALL)  # drop "thinking" if present
+    match = re.search(r"\{.*\}", text, flags=re.DOTALL)  # find the JSON part of the reply
+    if match is None:
+        return []
+    return json.loads(match.group()).get("clusters", [])
+
+
+def annotate(adata, groupby="leiden", tissue="unknown", species="human", n_genes=15):
+    """Annotate every cluster and store the labels in adata.obs['cell_type']."""
+    markers = get_markers(adata, groupby, n_genes)
+    answers = {str(a.get("cluster")): a for a in ask_llm(markers, tissue, species)}
+    rows = []
+    for cluster, genes in markers.items():
+        answer = answers.get(cluster, MISSING)  # the model may skip a cluster
+        print(f"Cluster {cluster}: {answer['cell_type']} ({answer['confidence']})")
+        rows.append({**answer, "cluster": cluster, "markers": ", ".join(genes)})
+
+    table = pd.DataFrame(rows).set_index("cluster")
+    adata.obs["cell_type"] = adata.obs[groupby].astype(str).map(table["cell_type"]).astype("category")
+    return table</pre></div>
+    <ul class="why">
+      <li><strong>Why one request for all clusters?</strong> The instructions are read once instead of nine times, there is one round trip instead of nine, and the model can compare clusters with each other, for example the two CD4 T cell clusters. The price is a longer reply that the model has to keep in step with the cluster list.</li>
+      <li><strong>Why JSON?</strong> A fixed format lets the code read the answer reliably instead of parsing free text. Each entry carries its <code>cluster</code> number, so <code>annotate()</code> can match answers to clusters even if the model changes the order.</li>
+      <li><strong>Why <code>MISSING</code>?</strong> With nine answers in one reply, a model sometimes skips one, often a small cluster. That cluster gets <code>unknown</code> instead of crashing the run.</li>
+      <li><strong>Why the two <code>re</code> lines?</strong> Some models "think out loud" in <code>&lt;think&gt;</code> tags or wrap the JSON in extra text. The code strips the thinking and keeps only the part between <code>{</code> and <code>}</code>.</li>
+      <li><strong>Why <code>temperature=0.1</code>?</strong> Lower temperature makes the model pick its most likely answer, so reruns give similar labels. Lesson 1 showed what temperature does to the next-token choice.</li>
     </ul>
+  </div>
+</section>
+
+<section class="part" id="run">
+  <div class="wrap">
+    <div class="part-head prose">
+      <span class="eyebrow">Run it</span>
+      <h2>Annotate the primer's nine clusters</h2>
+      <p>Open the notebook from the end of the <a href="single-cell/index.html#end">primer</a> and run it to the last cell. Its <code>adata</code> already holds the normalized data, the UMAP and the <code>leiden</code> clusters. Then add one cell:</p>
+    </div>
+    <div class="codebox"><span class="fname"><b>pbmc3k_analysis.ipynb</b> · new cell after "Marker genes"</span><button class="copy" type="button">Copy</button><pre class="py">from simple_anno import annotate
+
+results = annotate(adata, groupby="leiden", tissue="PBMC", species="human")
+sc.pl.umap(adata, color=["leiden", "cell_type"], legend_loc="on data")
+results</pre></div>
+    <div class="tablebox" style="margin-top:22px">
+      <table class="wide">
+        <thead><tr><th>cluster</th><th>cells</th><th>cell_type</th><th>confidence</th><th>reason</th></tr></thead>
+        <tbody>
+          <tr><td class="num">0</td><td class="num">638</td><td>naive CD4 T cell</td><td><span class="conf high">high</span></td><td>CCR7, LDHB and CD3D/CD3E mark naive T cells.</td></tr>
+          <tr><td class="num">1</td><td class="num">525</td><td>memory CD4 T cell</td><td><span class="conf medium">medium</span></td><td>IL7R, LTB and IL32 with CD3D/CD3E fit memory CD4 T cells.</td></tr>
+          <tr><td class="num">2</td><td class="num">482</td><td>classical monocyte</td><td><span class="conf high">high</span></td><td>LYZ, S100A8/9 and FCN1 are hallmark classical monocyte genes.</td></tr>
+          <tr><td class="num">3</td><td class="num">344</td><td>B cell</td><td><span class="conf high">high</span></td><td>CD79A, CD79B and MS4A1 with HLA class II are core B cell markers.</td></tr>
+          <tr><td class="num">4</td><td class="num">301</td><td>CD8 T cell</td><td><span class="conf medium">medium</span></td><td>CCL5, GZMK, GZMA and NKG7 suggest cytotoxic T cells.</td></tr>
+          <tr><td class="num">5</td><td class="num">163</td><td>non-classical monocyte</td><td><span class="conf high">high</span></td><td>FCGR3A, LST1 and AIF1 mark CD16+ monocytes.</td></tr>
+          <tr><td class="num">6</td><td class="num">142</td><td>NK cell</td><td><span class="conf high">high</span></td><td>GNLY, GZMB, PRF1 and NKG7 point to NK cells.</td></tr>
+          <tr><td class="num">7</td><td class="num">30</td><td>dendritic cell</td><td><span class="conf medium">medium</span></td><td>HLA class II genes and CST3 without B cell genes fit dendritic cells.</td></tr>
+          <tr><td class="num">8</td><td class="num">13</td><td>platelet</td><td><span class="conf low">low</span></td><td>PF4, PPBP and SDPR are platelet genes; the cluster is very small.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note caption">Illustrative output for the primer's clusters, not a recorded run. Cluster numbers and sizes are the primer's; labels and reasons vary between models. The returned table also has a <code>markers</code> column with the genes the model saw.</p>
+    <div class="callout"><span class="lbl">Always check the answer</span><p>The model can sound sure and still be wrong. Compare its labels with the <em>Well-known immune genes</em> dot plot in <a href="single-cell/index.html#s9">step 09 of the primer</a>, or plot the markers per label with <code>sc.pl.dotplot(adata, ["CD3E", "CD14", "MS4A1", "NKG7"], groupby="cell_type")</code>, and ask: do these genes really fit the name?</p></div>
+  </div>
+</section>
+
+<section class="part" id="json">
+  <div class="wrap">
+    <div class="part-head prose">
+      <span class="eyebrow">Constrain the output</span>
+      <h2>Guarantee the JSON format</h2>
+      <p>Asking for JSON in the prompt works most of the time, but a model can still add a sentence before the answer, rename a key, or reply "very high" instead of "high". That is why <code>ask_llm()</code> needs the regular expressions and the fallback to an empty list.</p>
+      <p>LM Studio can remove the guesswork. You describe the answer as a <strong>JSON schema</strong> and send it with the request. The server then only lets the model write text that fits the schema, so every reply can be read directly.</p>
+    </div>
+    <h3 style="margin-top:8px">Replace <code>ask_llm()</code> with this version</h3>
+    <div class="codebox"><span class="fname"><b>simple_anno.py</b> · replaces ask_llm</span><button class="copy" type="button">Copy</button><pre class="py">SCHEMA = {
+    "type": "object",
+    "properties": {
+        "clusters": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "cluster": {"type": "string"},
+                    "cell_type": {"type": "string"},
+                    "confidence": {"type": "string", "enum": ["high", "medium", "low"]},
+                    "reason": {"type": "string"},
+                },
+                "required": ["cluster", "cell_type", "confidence", "reason"],
+            },
+        },
+    },
+    "required": ["clusters"],
+}
+
+
+def ask_llm(markers, tissue="unknown", species="human"):
+    """Ask the local LLM to name every cluster in one request; return a list of answers."""
+    clusters = "\n".join(f"Cluster {c}: {', '.join(genes)}" for c, genes in markers.items())
+    prompt = PROMPT.format(tissue=tissue, species=species, clusters=clusters)
+    response = client.chat.completions.create(
+        model=MODEL,
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.1,
+        response_format={"type": "json_schema",
+                         "json_schema": {"name": "annotations", "schema": SCHEMA}},
+    )
+    return json.loads(response.choices[0].message.content)["clusters"]</pre></div>
+    <ul class="why">
+      <li><strong><code>SCHEMA</code></strong> describes one object with a <code>clusters</code> list. Each entry has four text fields, all required. The <code>enum</code> limits <code>confidence</code> to exactly <code>high</code>, <code>medium</code> or <code>low</code>.</li>
+      <li><strong><code>response_format</code></strong> hands the schema to LM Studio. The <code>name</code> is just a label for the format.</li>
+      <li><strong>The cleanup is gone.</strong> No <code>re</code> lines and no empty-list fallback: the reply is always valid JSON, so <code>json.loads()</code> is enough.</li>
+      <li><strong>What the schema cannot say.</strong> It can require a list of entries, but not "exactly one entry for each of clusters 0 to 8". A skipped cluster still falls through to <code>MISSING</code> in <code>annotate()</code>. The next section checks this properly.</li>
+      <li><strong>Keep the prompt as it is.</strong> The schema fixes the shape of the answer, but the prompt still tells the model what each field should contain.</li>
+    </ul>
+    <div class="callout warn"><span class="lbl">Not every model supports this</span><p>LM Studio notes that models below 7B parameters often fail with structured output. If you get an error, load a larger model or switch back to the original <code>ask_llm()</code>.</p><p><b>Thinking models</b> (for example Qwen3.5 or Qwen3.6) do not combine well with a schema yet. In current LM Studio versions the schema is enforced from the first token, so the model skips its thinking and the JSON arrives in <code>reasoning_content</code> while <code>content</code> is empty, which makes <code>json.loads()</code> fail. Turn thinking off in the model's settings, use a non-thinking instruct model, or drop <code>response_format</code> and use the original <code>ask_llm()</code>. Both bugs are still open: <a href="https://github.com/lmstudio-ai/lmstudio-bug-tracker/issues/1773" target="_blank" rel="noopener">#1773</a> and <a href="https://github.com/lmstudio-ai/lmstudio-bug-tracker/issues/1698" target="_blank" rel="noopener">#1698</a>.</p></div>
+  </div>
+</section>
+
+<section class="part" id="pydantic">
+  <div class="wrap">
+    <div class="part-head prose">
+      <span class="eyebrow">Validate what comes back</span>
+      <h2>Check the content with Pydantic</h2>
+      <p>The schema guarantees the <em>shape</em> of the reply: the right keys, the right types, one of three confidence levels. It says nothing about the <em>content</em>. A reply can fit the schema perfectly and still skip a cluster, answer the same cluster twice, or cite a gene the model was never shown, so the reason sounds convincing but has no evidence behind it.</p>
+      <p><strong>Pydantic</strong> is a Python library for checking data. You describe the answer once as a Python class. Pydantic turns that class into the JSON schema for LM Studio, then checks every reply against it, including rules a schema cannot express. When a check fails, the code shows the model the error and asks again.</p>
+    </div>
+    <div class="two">
+      <div class="panel pass"><span class="tlabel">Reply · passes the schema</span>
+<pre class="mono-box">{"clusters": [
+  {"cluster": "0", ...},
+  {"cluster": "1", ...},
+  {"cluster": "2",
+   "cell_type": "classical monocyte",
+   "confidence": "high",
+   "supporting_markers": ["LYZ", <span class="gen">"CD14"</span>],
+   "reason": "LYZ and CD14 mark classical monocytes."},
+  ...
+  {"cluster": "7", ...}
+]}</pre>
+      </div>
+      <div class="panel reply"><span class="tlabel">Pydantic · rejects it</span>
+<pre class="mono-box">1 validation error for Annotations
+clusters
+  Value error, cluster 8 needs exactly one entry, found 0; cluster 2 cites genes not in its list: CD14</pre>
+        <p class="note">Cluster 8, the 13 platelets, was left out. And CD14 is a real monocyte marker, but it is not among cluster 2's top 15 genes in the primer: the model filled the gap from memory.</p>
+      </div>
+    </div>
+
+    <div class="sub">
+      <h3>Replace <code>PROMPT</code>, <code>SCHEMA</code> and <code>ask_llm()</code> with this version</h3>
+      <p>Each entry gains one field, <code>supporting_markers</code>: the genes from that cluster's list that the answer rests on. <code>get_markers()</code> and <code>annotate()</code> stay as they are.</p>
+    </div>
+    <div class="codebox"><span class="fname"><b>simple_anno.py</b> · replaces PROMPT, SCHEMA and ask_llm</span><button class="copy" type="button">Copy</button><pre class="py">from typing import Literal  # add these two imports at the top of the file
+
+from pydantic import BaseModel, ValidationError, ValidationInfo, field_validator
+
+PROMPT = """You are an expert in single-cell biology.
+Tissue: {tissue}. Species: {species}.
+These are the clusters of one dataset, each with its top marker genes, most specific first:
+{clusters}
+
+Name the most likely cell type of every cluster. Reply with JSON only, one entry per cluster, like this:
+{{"clusters": [{{"cluster": "0", "cell_type": "...", "confidence": "high, medium or low",
+  "supporting_markers": ["genes from that cluster's list"], "reason": "one short sentence"}}, ...]}}"""
+
+
+class Annotation(BaseModel):
+    cluster: str
+    cell_type: str
+    confidence: Literal["high", "medium", "low"]
+    supporting_markers: list[str]
+    reason: str
+
+
+class Annotations(BaseModel):
+    clusters: list[Annotation]
+
+    @field_validator("clusters")
+    @classmethod
+    def match_the_markers(cls, clusters, info: ValidationInfo):
+        """Each cluster must be answered once and cite only its own marker genes."""
+        markers = (info.context or {}).get("markers", {})
+        answered = [a.cluster for a in clusters]
+        problems = [f"cluster {c} needs exactly one entry, found {answered.count(c)}"
+                    for c in markers if answered.count(c) != 1]
+        for a in clusters:
+            if a.cluster not in markers:
+                problems.append(f"there is no cluster {a.cluster}")
+                continue
+            unknown = [g for g in a.supporting_markers if g not in markers[a.cluster]]
+            if unknown:
+                problems.append(f"cluster {a.cluster} cites genes not in its list: {', '.join(unknown)}")
+        if problems:
+            raise ValueError("; ".join(problems))
+        return clusters
+
+
+def ask_llm(markers, tissue="unknown", species="human", retries=2):
+    """Ask for every cluster in one request; retry if the answer fails validation."""
+    clusters = "\n".join(f"Cluster {c}: {', '.join(genes)}" for c, genes in markers.items())
+    prompt = PROMPT.format(tissue=tissue, species=species, clusters=clusters)
+    messages = [{"role": "user", "content": prompt}]
+    for _ in range(retries + 1):
+        response = client.chat.completions.create(
+            model=MODEL,
+            messages=messages,
+            temperature=0.1,
+            response_format={"type": "json_schema",
+                             "json_schema": {"name": "annotations", "schema": Annotations.model_json_schema()}},
+        )
+        text = response.choices[0].message.content
+        try:
+            return Annotations.model_validate_json(text, context={"markers": markers}).model_dump()["clusters"]
+        except ValidationError as err:
+            messages.append({"role": "assistant", "content": text})
+            messages.append({"role": "user", "content": f"That answer has errors:\n{err}\nPlease fix them and reply again."})
+    return []  # annotate() marks every cluster as unknown</pre></div>
+    <ul class="why">
+      <li><strong>Two classes describe the answer.</strong> <code>Annotation</code> is one cluster's entry and <code>Annotations</code> is the whole reply. <code>Annotations.model_json_schema()</code> builds the schema for LM Studio from them, so the hand-written <code>SCHEMA</code> dict is gone and the two can never drift apart.</li>
+      <li><strong><code>Literal[...]</code></strong> does what <code>enum</code> did in the schema: only <code>high</code>, <code>medium</code> or <code>low</code> are accepted.</li>
+      <li><strong>The validator checks the reply against the data.</strong> <code>context={"markers": markers}</code> passes the real marker lists into the check. Every cluster must appear exactly once, no made-up cluster may appear, and each entry may cite only genes from its own list. A JSON schema cannot express any of these rules.</li>
+      <li><strong>All problems are reported at once.</strong> The validator collects every problem before it raises, so one retry can fix them all.</li>
+      <li><strong>Errors go back to the model.</strong> The bad reply and Pydantic's message are added to the conversation, and the model gets up to two more tries. Models usually fix a mistake once it is named.</li>
+      <li><strong>There is still a fallback.</strong> If every try fails, <code>ask_llm()</code> returns an empty list and <code>annotate()</code> marks the clusters <code>unknown</code> instead of stopping. Then look at the clusters by hand, or try a larger model.</li>
+    </ul>
+    <div class="callout"><span class="lbl">Valid is not the same as correct</span><p>Validation throws out answers that are malformed or cite missing evidence. A well-formed answer with the wrong cell type still passes. The <code>results</code> table now has a <code>supporting_markers</code> column, so the dot-plot check from <a href="#run">Run it</a> gets easier, but you still have to do it.</p></div>
+  </div>
+</section>
+
+<section class="part" id="further">
+  <div class="wrap">
+    <div class="part-head prose">
+      <span class="eyebrow">Going further</span>
+      <h2>Taking it further</h2>
+      <p>The annotator now returns answers that code can trust to be well formed. It still leaves a lot out on purpose. Each idea below is a self-contained project for students who want to go deeper, roughly from easiest to hardest.</p>
+    </div>
+    <div class="tablebox">
+      <table class="ideas wide">
+        <thead><tr><th>Improvement</th><th>Why it helps</th><th>Where to start</th></tr></thead>
+        <tbody>
+          <tr><td>Give more context<br><span class="effort e1">easy</span></td><td>Disease, treatment or a sorted population changes what the markers mean.</td><td>Add a <code>context</code> argument and one more line to <code>PROMPT</code>.</td></tr>
+          <tr><td>Ask several times<br><span class="effort e1">easy</span></td><td>Send the same request 5 times and keep the most common answer for each cluster. Low agreement flags unclear clusters.</td><td>Raise <code>temperature</code> to 0.7 and use <code>collections.Counter</code>.</td></tr>
+          <tr><td>Send clusters in batches<br><span class="effort e2">medium</span></td><td>With 30 or more clusters the reply gets long and small models start to skip or mix up entries.</td><td>Split <code>markers</code> into groups of about ten and call <code>ask_llm()</code> once per group.</td></tr>
+          <tr><td>Save answers<br><span class="effort e2">medium</span></td><td>Reruns become instant and give identical labels, which helps reproducibility.</td><td>Store replies in a dict or JSON file, keyed by the prompt text.</td></tr>
+          <tr><td>Add known marker lists<br><span class="effort e2">medium</span></td><td>Small models remember marker biology imperfectly. Giving them reference lists to compare against reduces mistakes.</td><td>Download PanglaoDB or CellMarker tables and add matching entries to the prompt.</td></tr>
+          <tr><td>Annotate in two rounds<br><span class="effort e2">medium</span></td><td>Broad types first, then subcluster each one (for example T cells) to find subtypes.</td><td>Subset <code>adata</code> by <code>cell_type</code>, recluster, call <code>annotate()</code> again.</td></tr>
+          <tr><td>Use standard names<br><span class="effort e3">harder</span></td><td>"NK cell", "NK cells" and "natural killer cell" are the same thing. Mapping labels to the Cell Ontology gives one official name and ID (for example <code>CL:0000623</code>).</td><td>Download <code>cl-basic.obo</code>, read it with <code>obonet</code>, match names with <code>rapidfuzz</code>. A second Pydantic validator can reject names that are not in the ontology.</td></tr>
+          <tr><td>Compare with a reference method<br><span class="effort e3">harder</span></td><td>Where two independent methods disagree is where a human should look.</td><td>Run CellTypist on the same data and cross-tabulate with <code>pd.crosstab</code>.</td></tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </section>
 </main>
 
-<footer><div class="wrap"><a href="../index.html">← Back to all lessons</a> · Lesson 2 of 5 · Coding agents for computational biology · Previous: <a href="../lesson1/index.html">How LLMs work</a></div></footer>
+<footer><div class="wrap"><a href="../index.html">← Back to all lessons</a> · Lesson 2 of 5 · Coding agents for computational biology · Previous: <a href="../lesson1/index.html">How LLMs work</a> · LM Studio runs models locally and serves an OpenAI-compatible API at <code>localhost:1234/v1</code>.</div></footer>
 
 <script>
 (() => {
   const links = [...document.querySelectorAll('.sched-bar a')];
+  const bar = document.querySelector('.sched-bar');
   const io = new IntersectionObserver(entries => {
-    entries.forEach(e => { if (e.isIntersecting) links.forEach(a => a.classList.toggle('on', a.getAttribute('href') === '#' + e.target.id)); });
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      links.forEach(a => {
+        const on = a.getAttribute('href') === '#' + e.target.id;
+        a.classList.toggle('on', on);
+        if (on) bar.scrollTo({ left: a.offsetLeft - bar.clientWidth / 2 + a.offsetWidth / 2, behavior: 'smooth' });
+      });
+    });
   }, { rootMargin: '-35% 0px -60% 0px' });
   document.querySelectorAll('section.part').forEach(s => io.observe(s));
+
+  /* syntax highlighting (same tokenizer as the single-cell primer) */
+  const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const TOK = /(#[^\n]*)|("""[\s\S]*?"""|"(?:[^"\\\n]|\\.)*")|\b(import|from|def|class|return|for|in|if|is|not|None|True|False|try|except|raise|as)\b/g;
+  document.querySelectorAll('pre.py').forEach(pre => {
+    const src = pre.textContent;
+    let out = '', i = 0;
+    for (const m of src.matchAll(TOK)) {
+      out += esc(src.slice(i, m.index)) + `<span class="${m[1] ? 'c' : m[2] ? 's' : 'k'}">${esc(m[0])}</span>`;
+      i = m.index + m[0].length;
+    }
+    pre.innerHTML = out + esc(src.slice(i));
+  });
+
+  /* copy buttons (same as lesson 1) */
+  document.querySelectorAll('.copy').forEach(btn => btn.addEventListener('click', () => {
+    const pre = btn.parentElement.querySelector('pre');
+    const done = () => { btn.textContent = 'Copied'; setTimeout(() => { btn.textContent = 'Copy'; }, 1500); };
+    const fallback = () => { const r = document.createRange(); r.selectNodeContents(pre); const s = getSelection(); s.removeAllRanges(); s.addRange(r); btn.textContent = 'Selected'; setTimeout(() => { btn.textContent = 'Copy'; }, 1500); };
+    try { navigator.clipboard.writeText(pre.textContent).then(done, fallback); } catch (e) { fallback(); }
+  }));
 })();
 </script>
 </body>
